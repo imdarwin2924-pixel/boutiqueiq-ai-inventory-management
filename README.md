@@ -10,7 +10,7 @@ A full-stack cloud-based inventory and catalog management platform that enables 
 
 BoutiqueIQ is developed as a **Semester 5 Capstone Project**. The application helps boutique owners digitize their daily business operations by providing a centralized platform for inventory tracking, product management, supplier management, customer management, sales processing, reporting, and AI-powered business insights.
 
-The project follows a **Three-Tier Architecture** with a React frontend, FastAPI backend, PostgreSQL database, and Scikit-learn AI module.
+The project follows a **Three-Tier Architecture** using **React + TypeScript** for the frontend, **FastAPI** for the backend, **PostgreSQL** as the relational database, and **Scikit-learn** for AI-powered demand forecasting.
 
 ---
 
@@ -18,10 +18,11 @@ The project follows a **Three-Tier Architecture** with a React frontend, FastAPI
 
 ### Current Phase
 
-🟢 **Phase 1 – Design & Planning**
+🟢 **Phase 2 – Backend Development**
 
 ### Completed
 
+#### 📌 Planning & Design
 - ✅ Problem Statement Finalized
 - ✅ GitHub Repository Created
 - ✅ Backend Project Initialized (FastAPI)
@@ -37,15 +38,38 @@ The project follows a **Three-Tier Architecture** with a React frontend, FastAPI
 - ✅ Module Design
 - ✅ Module Diagram
 
+#### ⚙️ Backend Foundation
+- ✅ PostgreSQL Installed & Configured
+- ✅ pgAdmin Configured
+- ✅ SQLAlchemy Integration
+- ✅ Database Connection
+- ✅ Database Initialization
+- ✅ Role Model
+- ✅ User Model
+- ✅ Roles & Users Tables Created
+
+#### 🔐 Authentication Module
+- ✅ User Registration API
+- ✅ User Login API
+- ✅ Password Hashing (bcrypt)
+- ✅ JWT Token Generation
+- ✅ JWT Authentication
+- ✅ Protected Routes
+- ✅ Swagger Authorization
+- ✅ User Profile Endpoint (`/auth/me`)
+
 ### Upcoming
 
-- ⏳ API Design
-- ⏳ FastAPI Backend Development
-- ⏳ PostgreSQL Database Implementation
-- ⏳ React Frontend Development
-- ⏳ AI Model Development
+- ⏳ Category Management
+- ⏳ Product Management
+- ⏳ Inventory Management
+- ⏳ Supplier Management
+- ⏳ Customer Management
+- ⏳ Sales Management
+- ⏳ AI Demand Forecasting
+- ⏳ Reports & Dashboard
+- ⏳ React Frontend Integration
 - ⏳ Cloud Deployment
-- ⏳ Testing & Documentation
 
 ---
 
@@ -57,67 +81,74 @@ The project follows a **Three-Tier Architecture** with a React frontend, FastAPI
 | Backend | FastAPI |
 | ORM | SQLAlchemy |
 | Database | PostgreSQL |
-| Authentication | JWT Authentication |
+| Authentication | JWT + OAuth2 |
+| API Documentation | Swagger UI (OpenAPI) |
 | AI | Scikit-learn |
 | Deployment | Vercel, Render, Railway PostgreSQL |
 
 ---
 
-# ✨ Features
+# ✨ Implemented Features
 
-## Authentication
+## Authentication ✅
 
-- Secure Login
+- User Registration
+- User Login
 - JWT Authentication
-- Role-Based Access Control
+- Protected API Endpoints
+- Password Hashing (bcrypt)
+- OAuth2 Integration
+- Swagger Authorization
+
+---
+
+# 🚧 Upcoming Features
 
 ## Dashboard
-
 - Business Overview
 - Revenue Summary
 - Low Stock Alerts
 - AI Insights
 
-## Product Management
+## Category Management
+- Create Category
+- Update Category
+- Delete Category
+- View Categories
 
+## Product Management
 - Product Catalog
 - Product Images
 - SKU Management
 - Category Assignment
 
 ## Inventory Management
-
 - Stock In
 - Stock Out
 - Inventory Tracking
 - Stock Transactions
 
 ## Supplier Management
-
 - Supplier Records
 - Purchase Orders
 
 ## Customer Management
-
 - Customer Records
 - Purchase History
 
 ## Sales Management
-
 - Sales Invoice
 - Billing
 - Returns
 - Sales History
 
 ## Reports
-
 - Sales Report
 - Inventory Report
 - Purchase Report
 - Revenue Report
 
 ## Artificial Intelligence
-
 - Demand Forecasting
 - Inventory Optimization
 - Stock Recommendation
@@ -147,7 +178,7 @@ docs/diagrams/system-architecture.png
 
 BoutiqueIQ uses **PostgreSQL** as the primary relational database.
 
-Main database modules include:
+Current Database Modules
 
 - Authentication
 - Inventory
@@ -166,9 +197,9 @@ docs/diagrams/er-diagram.png
 
 # 🧩 Module Design
 
-The application is divided into multiple functional modules.
+Current Modules
 
-- Authentication
+- Authentication ✅
 - Dashboard
 - Product Management
 - Category Management
@@ -203,6 +234,7 @@ BOUTIQUEIQ
 │   │   ├── services
 │   │   ├── tests
 │   │   └── utils
+│   ├── .env
 │   └── requirements.txt
 │
 ├── frontend
@@ -236,14 +268,31 @@ BOUTIQUEIQ
 
 # 📅 Development Progress
 
-| Phase | Status |
-|--------|--------|
-| Day 1 | ✅ Completed |
-| Day 2 | ✅ Completed |
-| Day 3 | ✅ Completed |
-| Day 4 | ✅ Completed |
-| Day 5 | ✅ Completed |
-| Day 6 | ✅ Completed |
+| Day | Status |
+|-----|--------|
+| Day 1 | ✅ Project Initialization |
+| Day 2 | ✅ Project Setup |
+| Day 3 | ✅ Planning Documents |
+| Day 4 | ✅ System Architecture |
+| Day 5 | ✅ Database Design |
+| Day 6 | ✅ Documentation |
+| Day 7 | ✅ Backend Foundation |
+| Day 8 | ✅ Authentication Module |
+
+---
+
+# 📊 Current Progress
+
+| Module | Status |
+|---------|--------|
+| Planning & Design | ✅ 100% |
+| Backend Foundation | ✅ 100% |
+| Authentication | ✅ 100% |
+| Category Module | ⏳ Planned |
+| Product Module | ⏳ Planned |
+| Inventory Module | ⏳ Planned |
+| Frontend Integration | ⏳ Planned |
+| AI Module | ⏳ Planned |
 
 ---
 
@@ -265,7 +314,7 @@ BOUTIQUEIQ
 - Mobile Application
 - Cloud Storage Integration
 - Email Notifications
-- Advanced AI Analytics
+- AI Sales Analytics
 - Customer Loyalty Program
 
 ---
