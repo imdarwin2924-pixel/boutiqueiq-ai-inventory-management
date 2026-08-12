@@ -1,0 +1,635 @@
+BOUTIQUEIQ — REVIEW 1
+Semester 5 Capstone Project
+Review Scope: Day 1 to Day 13
+
+============================================================
+1. PROJECT OVERVIEW
+============================================================
+
+Project Name:
+BoutiqueIQ
+
+Project Description:
+BoutiqueIQ is an AI-powered clothing inventory and catalog management
+platform designed for boutique businesses.
+
+The system is intended to help boutique owners manage:
+- Products
+- Inventory
+- Suppliers
+- Customers
+- Sales
+- Purchase operations
+- Reports
+- AI-powered business insights
+
+Long-term AI goals:
+- Demand Forecasting
+- Inventory Optimization
+- Stock Recommendation
+
+Current focus:
+The current development phase focuses on building the core backend
+and business modules required to support these future AI features.
+
+
+============================================================
+2. PROBLEM STATEMENT
+============================================================
+
+Boutique owners may manage products, inventory, suppliers, customers,
+and sales manually or through disconnected systems. This can result in
+inaccurate stock information, difficulty tracking business operations,
+and limited ability to make data-driven decisions.
+
+BoutiqueIQ aims to provide a centralized platform for managing these
+operations and later use Artificial Intelligence for demand forecasting
+and inventory optimization.
+
+
+============================================================
+3. PROJECT ARCHITECTURE
+============================================================
+
+BoutiqueIQ follows a Three-Tier Architecture.
+
+Presentation Layer:
+- React
+- TypeScript
+- Vite
+
+Application Layer:
+- FastAPI
+- REST APIs
+- Authentication
+- Business logic
+
+Data Layer:
+- PostgreSQL
+- SQLAlchemy ORM
+
+AI Layer:
+- Scikit-learn
+- Planned for demand forecasting and inventory optimization
+
+
+Architecture Flow:
+
+React Frontend
+      |
+      v
+FastAPI Backend
+      |
+      v
+SQLAlchemy ORM
+      |
+      v
+PostgreSQL Database
+      |
+      v
+AI / Analytics Layer
+
+
+============================================================
+4. TECHNOLOGY STACK
+============================================================
+
+Frontend:
+- React.js
+- TypeScript
+- Vite
+
+Backend:
+- FastAPI
+- Python
+
+ORM:
+- SQLAlchemy
+
+Database:
+- PostgreSQL
+
+Authentication:
+- JWT
+- OAuth2
+- bcrypt password hashing
+
+API Documentation:
+- Swagger UI / OpenAPI
+
+AI:
+- Scikit-learn
+
+Planned Deployment:
+- Vercel
+- Render
+- Railway PostgreSQL
+
+
+============================================================
+5. DEVELOPMENT PROGRESS — DAY 1 TO DAY 13
+============================================================
+
+DAY 1 — PROJECT INITIALIZATION
+- GitHub repository created
+- Project initialized
+- Problem Statement added
+- Initial project documentation created
+
+DAY 2 — PROJECT SETUP
+- Backend project initialized using FastAPI
+- Frontend project initialized using React + Vite + TypeScript
+- Initial project structure created
+
+DAY 3 — REQUIREMENTS & PLANNING
+- Functional Requirements
+- Non-Functional Requirements
+- Feature List
+- User Flow
+
+DAY 4 — SYSTEM ARCHITECTURE
+- Three-Tier Architecture
+- System Architecture design
+- Architecture diagram
+
+DAY 5 — DATABASE DESIGN
+- PostgreSQL database planning
+- Database design
+- Entity Relationship (ER) Diagram
+
+DAY 6 — MODULE DESIGN & DOCUMENTATION
+- Module Design
+- Module Diagram
+- Project documentation
+
+DAY 7 — BACKEND FOUNDATION
+- PostgreSQL installed and configured
+- pgAdmin configured
+- SQLAlchemy integration
+- Database connection
+- Database initialization
+- Role Model
+- User Model
+- Roles table
+- Users table
+
+DAY 8 — AUTHENTICATION MODULE
+- User Registration API
+- User Login API
+- Password Hashing using bcrypt
+- JWT Token Generation
+- JWT Authentication
+- Protected Routes
+- Swagger Authorization
+- User Profile Endpoint: /auth/me
+
+DAY 9 — CATEGORY MANAGEMENT
+- Category Model
+- Category Schema
+- Category Service
+- Category API
+- Create Category
+- Get Categories
+- Get Category by ID
+- Update Category
+- Delete Category
+- PostgreSQL Categories table
+
+DAY 10 — PRODUCT MANAGEMENT
+- Product Model
+- Product Schema
+- Product Service
+- Product API
+- Product CRUD operations
+- Product and Category relationship
+- PostgreSQL Products table
+
+DAY 11 — INVENTORY MANAGEMENT
+- Inventory Model
+- Inventory Schema
+- Inventory Service
+- Inventory API
+- Inventory CRUD operations
+- Product and Inventory relationship
+- PostgreSQL Inventory table
+
+DAY 12 — SUPPLIER MANAGEMENT
+- Supplier Model
+- Supplier Schema
+- Supplier Service
+- Supplier API
+- Supplier CRUD operations
+- PostgreSQL Suppliers table
+- Supplier testing completed successfully
+
+DAY 13 — CUSTOMER MANAGEMENT
+- Customer Model
+- Customer Schema
+- Customer Service
+- Customer API
+- Customer CRUD implementation
+- PostgreSQL Customers table
+- Customer CRUD testing
+
+
+============================================================
+6. CURRENT DATABASE TABLES
+============================================================
+
+The current PostgreSQL database contains:
+
+- roles
+- users
+- categories
+- products
+- inventory
+- suppliers
+- customers
+
+
+Database relationship concept:
+
+Users
+  |
+  +-- Authentication / Authorization
+
+Categories
+  |
+  +-- Products
+        |
+        +-- Inventory
+
+Suppliers
+  |
+  +-- Future Purchase Orders
+
+Customers
+  |
+  +-- Future Sales
+
+
+============================================================
+7. CURRENT BACKEND MODULES
+============================================================
+
+1. Authentication
+   Status: COMPLETE
+
+2. Category Management
+   Status: COMPLETE
+
+3. Product Management
+   Status: COMPLETE
+
+4. Inventory Management
+   Status: COMPLETE
+
+5. Supplier Management
+   Status: COMPLETE
+
+6. Customer Management
+   Status: COMPLETE / REVIEW READY
+
+
+============================================================
+8. SWAGGER / API DEMONSTRATION
+============================================================
+
+Swagger URL:
+
+http://127.0.0.1:8000/docs
+
+Authentication:
+- POST /auth/login
+- POST /auth/register
+- GET /auth/me
+
+Category:
+- POST /categories/
+- GET /categories/
+- GET /categories/{category_id}
+- PUT /categories/{category_id}
+- DELETE /categories/{category_id}
+
+Product:
+- POST /products/
+- GET /products/
+- GET /products/{product_id}
+- PUT /products/{product_id}
+- DELETE /products/{product_id}
+
+Inventory:
+- POST /inventory/
+- GET /inventory/
+- GET /inventory/{inventory_id}
+- PUT /inventory/{inventory_id}
+- DELETE /inventory/{inventory_id}
+
+Supplier:
+- POST /suppliers/
+- GET /suppliers/
+- GET /suppliers/{supplier_id}
+- PUT /suppliers/{supplier_id}
+- DELETE /suppliers/{supplier_id}
+
+Customer:
+- POST /customers/
+- GET /customers/
+- GET /customers/{customer_id}
+- PUT /customers/{customer_id}
+- DELETE /customers/{customer_id}
+
+
+============================================================
+9. DEMO PLAN FOR REVIEW 1
+============================================================
+
+Recommended demonstration order:
+
+1. Open Swagger:
+   http://127.0.0.1:8000/docs
+
+2. Demonstrate Login:
+   POST /auth/login
+
+3. Show JWT authorization.
+
+4. Demonstrate Category:
+   POST /categories/
+   GET /categories/
+
+5. Demonstrate Product:
+   POST /products/
+   GET /products/
+
+6. Demonstrate Inventory:
+   GET /inventory/
+
+7. Demonstrate Supplier:
+   GET /suppliers/
+
+8. Demonstrate Customer:
+   GET /customers/
+   GET /customers/{customer_id}
+
+
+============================================================
+10. EXAMPLE DATA FOR DEMONSTRATION
+============================================================
+
+Product:
+- Product Name: Cotton T-Shirt
+- SKU: TSHIRT001
+- Brand: BoutiqueIQ
+- Size: L
+- Color: Black
+- Purchase Price: 350
+- Selling Price: 599
+- Stock: 25
+
+Supplier:
+- Supplier: ABC Fashion Suppliers
+- Contact Person: Ramesh Kumar
+- Phone: 9876543210
+- Location: Chennai, Tamil Nadu
+
+Customer:
+- Customer: Arun Kumar
+- Phone: 9876543210
+- Email: arun@example.com
+- Address: Chennai, Tamil Nadu
+
+
+============================================================
+11. IMPORTANT TECHNICAL EXPLANATIONS
+============================================================
+
+Q: Why FastAPI?
+
+A:
+FastAPI was selected for high-performance REST API development,
+automatic OpenAPI/Swagger documentation, dependency injection, and
+easy integration with SQLAlchemy and PostgreSQL.
+
+Q: Why PostgreSQL?
+
+A:
+PostgreSQL is a reliable relational database suitable for structured
+business data such as products, customers, suppliers, inventory, and
+future sales transactions.
+
+Q: Why SQLAlchemy?
+
+A:
+SQLAlchemy provides ORM functionality. It allows the backend to work
+with database tables through Python models and supports relationships
+between entities.
+
+Q: Why JWT?
+
+A:
+JWT provides stateless authentication. After successful login, the
+backend generates a token and protected APIs require that token.
+
+Q: Why is AI not completed yet?
+
+A:
+The current phase focuses on building the core transactional modules.
+The AI demand forecasting system requires structured historical sales
+and inventory data. Therefore, the core business modules are being
+implemented first. The AI module will be developed after sufficient
+business data and sales functionality are available.
+
+
+============================================================
+12. WHAT MAKES BOUTIQUEIQ DIFFERENT?
+============================================================
+
+BoutiqueIQ is not intended to remain only a basic inventory system.
+
+The long-term goal is to combine:
+- Inventory Management
+- Product Management
+- Supplier Management
+- Customer Management
+- Sales Management
+- Reports
+- AI Demand Forecasting
+- Inventory Optimization
+
+The current backend establishes the structured business data required
+for future AI-powered decision support.
+
+
+============================================================
+13. CURRENT PROJECT STATUS
+============================================================
+
+Planning & Design:
+COMPLETE
+
+Backend Foundation:
+COMPLETE
+
+Authentication:
+COMPLETE
+
+Category Management:
+COMPLETE
+
+Product Management:
+COMPLETE
+
+Inventory Management:
+COMPLETE
+
+Supplier Management:
+COMPLETE
+
+Customer Management:
+COMPLETE / REVIEW READY
+
+Sales Management:
+UPCOMING
+
+Dashboard:
+UPCOMING
+
+Reports:
+UPCOMING
+
+AI Demand Forecasting:
+UPCOMING
+
+React Frontend Integration:
+UPCOMING
+
+Cloud Deployment:
+UPCOMING
+
+
+============================================================
+14. REVIEW 1 DEVELOPMENT TIMELINE
+============================================================
+
+Day 1  - Project Initialization
+Day 2  - Project Setup
+Day 3  - Requirements & Planning
+Day 4  - System Architecture
+Day 5  - Database Design
+Day 6  - Module Design & Documentation
+Day 7  - Backend Foundation
+Day 8  - Authentication
+Day 9  - Category Management
+Day 10 - Product Management
+Day 11 - Inventory Management
+Day 12 - Supplier Management
+Day 13 - Customer Management
+Day 13 - REVIEW 1
+
+
+============================================================
+15. TWO-MINUTE REVIEW PRESENTATION
+============================================================
+
+Introduction:
+
+"My project is BoutiqueIQ, an AI-powered clothing inventory and
+catalog management platform designed for boutique businesses."
+
+Problem:
+
+"Boutique owners may manage products, inventory, suppliers, customers
+and sales manually or through disconnected systems. This can result
+in inaccurate stock information and difficulty making business
+decisions."
+
+Solution:
+
+"BoutiqueIQ provides a centralized platform for managing these
+business operations, with a future AI module for demand forecasting
+and inventory optimization."
+
+Current Achievement:
+
+"Currently, I have completed the planning and system design, backend
+foundation, authentication, category, product, inventory, supplier
+and customer management modules."
+
+Technical Implementation:
+
+"The backend is implemented using FastAPI, SQLAlchemy and PostgreSQL.
+The APIs are documented and tested through Swagger."
+
+Future Plan:
+
+"Next, I will implement sales management, dashboards and reports,
+followed by AI-based demand forecasting, frontend integration and
+cloud deployment."
+
+
+============================================================
+16. REVIEW 1 KEY POINT
+============================================================
+
+REVIEW CUTOFF:
+DAY 13
+
+Do not start Day 14 development before Review 1.
+
+Main milestone:
+
+Phase 2 — Backend Development
+Core Business Modules Completed through Customer Management
+
+
+============================================================
+17. GITHUB / DOCUMENTATION CHECKLIST
+============================================================
+
+Before Review 1, verify:
+
+- GitHub repository is updated
+- README.md reflects progress through Day 13
+- CHANGELOG.md reflects Days 9–13
+- Swagger opens successfully
+- PostgreSQL tables exist
+- Backend starts successfully
+- Authentication works
+- Category API works
+- Product API works
+- Inventory API works
+- Supplier API works
+- Customer API works
+
+
+============================================================
+18. NEXT DEVELOPMENT PHASE
+============================================================
+
+After Review 1:
+
+DAY 14 — SALES MANAGEMENT
+
+Planned:
+- Sale Model
+- Sale Item Model
+- Database relationships
+- Sale Schemas
+- Sale Service
+- Sale API
+- Router Registration
+- Swagger Testing
+
+Then:
+- Dashboard
+- Reports
+- AI Demand Forecasting
+- Inventory Optimization
+- React Frontend Integration
+- Cloud Deployment
+
+
+============================================================
+END OF REVIEW 1 DOCUMENT
+============================================================

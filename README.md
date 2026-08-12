@@ -2,15 +2,24 @@
 
 > **AI-Powered Clothing Inventory & Catalog Management Platform for Boutiques**
 
-A full-stack cloud-based inventory and catalog management platform that enables boutique owners to manage products, inventory, suppliers, customers, sales, and purchase orders while leveraging Artificial Intelligence (AI) for demand forecasting and inventory optimization.
+BoutiqueIQ is a full-stack cloud-based inventory and catalog management platform designed for boutique owners to efficiently manage products, inventory, suppliers, customers, sales, and purchase orders while leveraging Artificial Intelligence (AI) for demand forecasting and inventory optimization.
 
 ---
 
 # 📖 Overview
 
-BoutiqueIQ is developed as a **Semester 5 Capstone Project**. The application helps boutique owners digitize their daily business operations by providing a centralized platform for inventory tracking, product management, supplier management, customer management, sales processing, reporting, and AI-powered business insights.
+BoutiqueIQ is developed as a **Semester 5 Capstone Project**.
 
-The project follows a **Three-Tier Architecture** using **React + TypeScript** for the frontend, **FastAPI** for the backend, **PostgreSQL** as the relational database, and **Scikit-learn** for AI-powered demand forecasting.
+The platform helps boutique owners digitize their business operations by providing a centralized system for inventory tracking, product management, supplier management, customer management, billing, reporting, and AI-powered business insights.
+
+The project follows a **Three-Tier Architecture** using:
+
+- **Frontend:** React + TypeScript + Vite
+- **Backend:** FastAPI
+- **Database:** PostgreSQL
+- **ORM:** SQLAlchemy
+- **Authentication:** JWT + OAuth2
+- **AI:** Scikit-learn
 
 ---
 
@@ -20,9 +29,12 @@ The project follows a **Three-Tier Architecture** using **React + TypeScript** f
 
 🟢 **Phase 2 – Backend Development**
 
-### Completed
+---
 
-#### 📌 Planning & Design
+# ✅ Completed
+
+## 📌 Planning & Design
+
 - ✅ Problem Statement Finalized
 - ✅ GitHub Repository Created
 - ✅ Backend Project Initialized (FastAPI)
@@ -32,43 +44,78 @@ The project follows a **Three-Tier Architecture** using **React + TypeScript** f
 - ✅ Non-Functional Requirements
 - ✅ Feature List
 - ✅ User Flow
-- ✅ System Architecture
+- ✅ Three-Tier System Architecture
 - ✅ Database Design
 - ✅ Entity Relationship (ER) Diagram
 - ✅ Module Design
 - ✅ Module Diagram
 
-#### ⚙️ Backend Foundation
-- ✅ PostgreSQL Installed & Configured
-- ✅ pgAdmin Configured
-- ✅ SQLAlchemy Integration
+---
+
+## ⚙️ Backend Foundation
+
+- ✅ PostgreSQL Installation & Configuration
+- ✅ pgAdmin Configuration
+- ✅ SQLAlchemy ORM Integration
+- ✅ Environment Configuration (.env)
 - ✅ Database Connection
 - ✅ Database Initialization
 - ✅ Role Model
 - ✅ User Model
-- ✅ Roles & Users Tables Created
+- ✅ Roles Table
+- ✅ Users Table
 
-#### 🔐 Authentication Module
+---
+
+## 🔐 Authentication Module
+
 - ✅ User Registration API
 - ✅ User Login API
-- ✅ Password Hashing (bcrypt)
 - ✅ JWT Token Generation
 - ✅ JWT Authentication
+- ✅ OAuth2 Password Flow
+- ✅ Password Hashing (bcrypt)
 - ✅ Protected Routes
+- ✅ Current User API (`/auth/me`)
 - ✅ Swagger Authorization
-- ✅ User Profile Endpoint (`/auth/me`)
 
-### Upcoming
+---
 
-- ⏳ Category Management
-- ⏳ Product Management
+## 📂 Category Management Module
+
+- ✅ Category Model
+- ✅ Category Schema
+- ✅ Category Service Layer
+- ✅ Category CRUD APIs
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Categories Table
+- ✅ Swagger CRUD Testing
+
+---
+
+## 👕 Product Management Module
+
+- ✅ Product Model
+- ✅ Product Schema
+- ✅ Product Service Layer
+- ✅ Product CRUD APIs
+- ✅ Product–Category Relationship
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Products Table
+- ✅ Swagger CRUD Testing
+
+---
+
+# 🚧 Upcoming
+
 - ⏳ Inventory Management
 - ⏳ Supplier Management
 - ⏳ Customer Management
 - ⏳ Sales Management
+- ⏳ Dashboard
+- ⏳ Reports & Analytics
 - ⏳ AI Demand Forecasting
-- ⏳ Reports & Dashboard
-- ⏳ React Frontend Integration
+- ⏳ React Frontend Development
 - ⏳ Cloud Deployment
 
 ---
@@ -77,7 +124,7 @@ The project follows a **Three-Tier Architecture** using **React + TypeScript** f
 
 | Layer | Technology |
 |--------|------------|
-| Frontend | React.js + TypeScript + Vite |
+| Frontend | React + TypeScript + Vite |
 | Backend | FastAPI |
 | ORM | SQLAlchemy |
 | Database | PostgreSQL |
@@ -90,76 +137,106 @@ The project follows a **Three-Tier Architecture** using **React + TypeScript** f
 
 # ✨ Implemented Features
 
-## Authentication ✅
+## 🔐 Authentication
 
 - User Registration
 - User Login
 - JWT Authentication
 - Protected API Endpoints
-- Password Hashing (bcrypt)
+- Password Hashing
 - OAuth2 Integration
 - Swagger Authorization
 
 ---
 
-# 🚧 Upcoming Features
+## 📂 Category Management
 
-## Dashboard
-- Business Overview
-- Revenue Summary
-- Low Stock Alerts
-- AI Insights
-
-## Category Management
 - Create Category
+- View Categories
+- View Category by ID
 - Update Category
 - Delete Category
-- View Categories
 
-## Product Management
-- Product Catalog
-- Product Images
-- SKU Management
-- Category Assignment
+---
 
-## Inventory Management
+## 👕 Product Management
+
+- Create Product
+- View Products
+- View Product by ID
+- Update Product
+- Delete Product
+- Product–Category Relationship
+
+---
+
+# 🚧 Planned Features
+
+## 📦 Inventory Management
+
 - Stock In
 - Stock Out
 - Inventory Tracking
 - Stock Transactions
 
-## Supplier Management
+---
+
+## 🚚 Supplier Management
+
 - Supplier Records
 - Purchase Orders
+- Supplier History
 
-## Customer Management
+---
+
+## 👥 Customer Management
+
 - Customer Records
-- Purchase History
+- Customer Purchase History
 
-## Sales Management
+---
+
+## 💰 Sales Management
+
 - Sales Invoice
 - Billing
 - Returns
 - Sales History
 
-## Reports
-- Sales Report
-- Inventory Report
-- Purchase Report
-- Revenue Report
+---
 
-## Artificial Intelligence
+## 📊 Dashboard
+
+- Revenue Summary
+- Low Stock Alerts
+- Business Overview
+- AI Insights
+
+---
+
+## 📈 Reports
+
+- Sales Reports
+- Inventory Reports
+- Purchase Reports
+- Revenue Reports
+
+---
+
+## 🤖 Artificial Intelligence
+
 - Demand Forecasting
 - Inventory Optimization
-- Stock Recommendation
+- Sales Prediction
+- Stock Recommendations
 
 ---
 
 # 🏗 System Architecture
 
-The BoutiqueIQ platform follows a **Three-Tier Architecture**.
+BoutiqueIQ follows a **Three-Tier Architecture**.
 
-### Layers
+## Layers
 
 - Presentation Layer (React + TypeScript)
 - Application Layer (FastAPI)
@@ -178,14 +255,20 @@ docs/diagrams/system-architecture.png
 
 BoutiqueIQ uses **PostgreSQL** as the primary relational database.
 
-Current Database Modules
+### Current Database Tables
 
-- Authentication
+- Roles
+- Users
+- Categories
+- Products
+
+### Upcoming Tables
+
 - Inventory
+- Suppliers
+- Customers
 - Sales
-- Purchasing
-- AI Forecasting
-- Notifications
+- Purchase Orders
 
 ER Diagram
 
@@ -197,18 +280,21 @@ docs/diagrams/er-diagram.png
 
 # 🧩 Module Design
 
-Current Modules
+## ✅ Implemented Modules
 
-- Authentication ✅
-- Dashboard
-- Product Management
+- Authentication
 - Category Management
+- Product Management
+
+## 🚧 Upcoming Modules
+
 - Inventory Management
 - Supplier Management
 - Customer Management
 - Sales Management
-- AI Prediction
+- Dashboard
 - Reports
+- AI Prediction
 
 Module Diagram
 
@@ -269,7 +355,7 @@ BOUTIQUEIQ
 # 📅 Development Progress
 
 | Day | Status |
-|-----|--------|
+|------|--------|
 | Day 1 | ✅ Project Initialization |
 | Day 2 | ✅ Project Setup |
 | Day 3 | ✅ Planning Documents |
@@ -278,6 +364,8 @@ BOUTIQUEIQ
 | Day 6 | ✅ Documentation |
 | Day 7 | ✅ Backend Foundation |
 | Day 8 | ✅ Authentication Module |
+| Day 9 | ✅ Category Management |
+| Day 10 | ✅ Product Management |
 
 ---
 
@@ -288,11 +376,14 @@ BOUTIQUEIQ
 | Planning & Design | ✅ 100% |
 | Backend Foundation | ✅ 100% |
 | Authentication | ✅ 100% |
-| Category Module | ⏳ Planned |
-| Product Module | ⏳ Planned |
-| Inventory Module | ⏳ Planned |
-| Frontend Integration | ⏳ Planned |
-| AI Module | ⏳ Planned |
+| Category Management | ✅ 100% |
+| Product Management | ✅ 100% |
+| Inventory Management | ⏳ Planned |
+| Supplier Management | ⏳ Planned |
+| Customer Management | ⏳ Planned |
+| Sales Management | ⏳ Planned |
+| Frontend Development | ⏳ Planned |
+| AI Integration | ⏳ Planned |
 
 ---
 
@@ -302,8 +393,8 @@ BOUTIQUEIQ
 - Simplify product and supplier management.
 - Improve inventory accuracy.
 - Generate business reports.
-- Predict future product demand using AI.
-- Optimize inventory levels using machine learning.
+- Predict future product demand using Artificial Intelligence.
+- Optimize inventory levels using Machine Learning.
 
 ---
 
@@ -323,10 +414,10 @@ BOUTIQUEIQ
 
 **DARWIN S**
 
-Semester 5 Capstone Project
+**Semester 5 Capstone Project**
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
