@@ -5,4 +5,7 @@ from app.models.product import Product
 from app.models.inventory import Inventory
 from app.models.supplier import Supplier
 from app.models.customer import Customer
-__all__ = ["Role", "User", "Category", "Product", "Inventory", "Supplier", "Customer"]
+from app.models.sale import Sale
+from app.models.purchase_order import PurchaseOrder
+from app.models.purchase_item import PurchaseItem
+__all__ = ["Role", "User", "Category", "Product", "Inventory", "Supplier", "Customer", "Sale", "PurchaseOrder", "PurchaseItem"]
