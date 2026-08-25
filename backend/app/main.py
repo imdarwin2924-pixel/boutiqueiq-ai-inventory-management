@@ -9,6 +9,7 @@ from app.api.customer import router as customer_router
 from app.api.sale import router as sale_router
 from app.api.purchase_order import router as purchase_order_router
 from app.api.purchase_item import router as purchase_item_router
+from app.api.stock_transaction import router as stock_transaction_router
 
 app = FastAPI(
     title="BoutiqueIQ API",
@@ -44,6 +45,8 @@ app.include_router(
 app.include_router(sale_router)
 app.include_router(purchase_order_router)
 app.include_router(purchase_item_router)
+app.include_router(stock_transaction_router)
+
 @app.get("/")
 def root():
     return {

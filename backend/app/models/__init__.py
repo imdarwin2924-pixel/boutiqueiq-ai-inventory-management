@@ -8,4 +8,7 @@ from app.models.customer import Customer
 from app.models.sale import Sale
 from app.models.purchase_order import PurchaseOrder
 from app.models.purchase_item import PurchaseItem
-__all__ = ["Role", "User", "Category", "Product", "Inventory", "Supplier", "Customer", "Sale", "PurchaseOrder", "PurchaseItem"]
+from app.models.stock_transaction import StockTransaction
+__all__ = ["Role", "User", "Category", "Product", "Inventory", 
+           "Supplier", "Customer", "Sale", "PurchaseOrder", 
+           "PurchaseItem", "StockTransaction"]
