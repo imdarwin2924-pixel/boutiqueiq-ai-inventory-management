@@ -2,7 +2,7 @@
 
 > **AI-Powered Clothing Inventory & Catalog Management Platform for Boutiques**
 
-BoutiqueIQ is a full-stack cloud-based inventory and catalog management platform designed for boutique owners to efficiently manage products, inventory, suppliers, customers, sales, and purchase orders while leveraging Artificial Intelligence (AI) for demand forecasting and inventory optimization.
+BoutiqueIQ is a full-stack inventory and catalog management platform designed for boutique owners to efficiently manage products, inventory, suppliers, customers, sales, and purchase operations while leveraging Artificial Intelligence (AI) for demand forecasting and inventory optimization.
 
 ---
 
@@ -10,7 +10,17 @@ BoutiqueIQ is a full-stack cloud-based inventory and catalog management platform
 
 BoutiqueIQ is developed as a **Semester 5 Capstone Project**.
 
-The platform helps boutique owners digitize their business operations by providing a centralized system for inventory tracking, product management, supplier management, customer management, billing, reporting, and AI-powered business insights.
+The platform helps boutique owners digitize their business operations by providing a centralized system for:
+
+- Product management
+- Category management
+- Inventory management
+- Supplier management
+- Customer management
+- Sales management
+- Billing
+- Reporting
+- AI-powered business insights
 
 The project follows a **Three-Tier Architecture** using:
 
@@ -25,9 +35,30 @@ The project follows a **Three-Tier Architecture** using:
 
 # 🚀 Project Status
 
-### Current Phase
+## Current Phase
 
-🟢 **Phase 2 – Backend Development**
+🟢 **Phase 2 – Backend Development & Frontend Preparation**
+
+## Current Status
+
+The core backend management modules have been implemented, integrated, and tested using Swagger UI and PostgreSQL.
+
+The backend is now prepared for React frontend integration.
+
+## Completed Backend Modules
+
+- ✅ Authentication
+- ✅ Category Management
+- ✅ Product Management
+- ✅ Inventory Management
+- ✅ Supplier Management
+- ✅ Customer Management
+- ✅ Sales Management
+- ✅ Purchase Order Management
+- ✅ Purchase Item Management
+- ✅ Stock Transaction Management
+- ✅ Backend Integration & Validation
+- ✅ Frontend API Preparation
 
 ---
 
@@ -47,12 +78,13 @@ The project follows a **Three-Tier Architecture** using:
 - ✅ Three-Tier System Architecture
 - ✅ Database Design
 - ✅ Entity Relationship (ER) Diagram
+- ✅ Database Relationships
 - ✅ Module Design
 - ✅ Module Diagram
 
 ---
 
-## ⚙️ Backend Foundation
+# ⚙️ Backend Foundation
 
 - ✅ PostgreSQL Installation & Configuration
 - ✅ pgAdmin Configuration
@@ -67,7 +99,7 @@ The project follows a **Three-Tier Architecture** using:
 
 ---
 
-## 🔐 Authentication Module
+# 🔐 Authentication Module
 
 - ✅ User Registration API
 - ✅ User Login API
@@ -78,10 +110,11 @@ The project follows a **Three-Tier Architecture** using:
 - ✅ Protected Routes
 - ✅ Current User API (`/auth/me`)
 - ✅ Swagger Authorization
+- ✅ Authentication Testing
 
 ---
 
-## 📂 Category Management Module
+# 📂 Category Management Module
 
 - ✅ Category Model
 - ✅ Category Schema
@@ -91,9 +124,17 @@ The project follows a **Three-Tier Architecture** using:
 - ✅ PostgreSQL Categories Table
 - ✅ Swagger CRUD Testing
 
+### Category APIs
+
+- `POST /categories/`
+- `GET /categories/`
+- `GET /categories/{category_id}`
+- `PUT /categories/{category_id}`
+- `DELETE /categories/{category_id}`
+
 ---
 
-## 👕 Product Management Module
+# 👕 Product Management Module
 
 - ✅ Product Model
 - ✅ Product Schema
@@ -104,39 +145,181 @@ The project follows a **Three-Tier Architecture** using:
 - ✅ PostgreSQL Products Table
 - ✅ Swagger CRUD Testing
 
----
+### Product APIs
 
-# 🚧 Upcoming
-
-- ⏳ Inventory Management
-- ⏳ Supplier Management
-- ⏳ Customer Management
-- ⏳ Sales Management
-- ⏳ Dashboard
-- ⏳ Reports & Analytics
-- ⏳ AI Demand Forecasting
-- ⏳ React Frontend Development
-- ⏳ Cloud Deployment
+- `POST /products/`
+- `GET /products/`
+- `GET /products/{product_id}`
+- `PUT /products/{product_id}`
+- `DELETE /products/{product_id}`
 
 ---
 
-# 🛠 Tech Stack
+# 📦 Inventory Management Module
 
-| Layer | Technology |
-|--------|------------|
-| Frontend | React + TypeScript + Vite |
-| Backend | FastAPI |
-| ORM | SQLAlchemy |
-| Database | PostgreSQL |
-| Authentication | JWT + OAuth2 |
-| API Documentation | Swagger UI (OpenAPI) |
-| AI | Scikit-learn |
-| Deployment | Vercel, Render, Railway PostgreSQL |
+- ✅ Inventory Model
+- ✅ Inventory Schema
+- ✅ Inventory Service Layer
+- ✅ Inventory CRUD APIs
+- ✅ Product–Inventory Relationship
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Inventory Table
+- ✅ Swagger CRUD Testing
+
+### Inventory APIs
+
+- `POST /inventory/`
+- `GET /inventory/`
+- `GET /inventory/{inventory_id}`
+- `PUT /inventory/{inventory_id}`
+- `DELETE /inventory/{inventory_id}`
 
 ---
 
+# 🚚 Supplier Management Module
+
+- ✅ Supplier Model
+- ✅ Supplier Schema
+- ✅ Supplier Service Layer
+- ✅ Supplier CRUD APIs
+- ✅ Supplier–Product Relationship
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Suppliers Table
+- ✅ Swagger CRUD Testing
+- ✅ Supplier Data Validation
+
+### Supplier APIs
+
+- `POST /suppliers/`
+- `GET /suppliers/`
+- `GET /suppliers/{supplier_id}`
+- `PUT /suppliers/{supplier_id}`
+- `DELETE /suppliers/{supplier_id}`
+
+---
+
+# 👥 Customer Management Module
+
+- ✅ Customer Model
+- ✅ Customer Schema
+- ✅ Customer Service Layer
+- ✅ Customer CRUD APIs
+- ✅ Customer Primary Key (`customer_id`)
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Customers Table
+- ✅ Swagger CRUD Testing
+- ✅ Customer Data Validation
+
+### Customer APIs
+
+- `POST /customers/`
+- `GET /customers/`
+- `GET /customers/{customer_id}`
+- `PUT /customers/{customer_id}`
+- `DELETE /customers/{customer_id}`
+
+---
+
+# 💰 Sales Management Module
+
+- ✅ Sales Model
+- ✅ Sales Schema
+- ✅ Sales Service Layer
+- ✅ Sales CRUD APIs
+- ✅ Customer–Sales Relationship
+- ✅ User–Sales Relationship
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Sales Table
+- ✅ Invoice Number Uniqueness Validation
+- ✅ Foreign Key Validation
+- ✅ Swagger CRUD Testing
+
+### Sales APIs
+
+- `POST /sales/`
+- `GET /sales/`
+- `GET /sales/{sale_id}`
+- `PUT /sales/{sale_id}`
+- `DELETE /sales/{sale_id}`
+
+---
+
+# 🛒 Purchase Management Module
+
+## Purchase Order Management
+
+- ✅ Purchase Order Model
+- ✅ Purchase Order Schema
+- ✅ Purchase Order Service Layer
+- ✅ Purchase Order CRUD APIs
+- ✅ Supplier–Purchase Order Relationship
+- ✅ User–Purchase Order Relationship
+- ✅ Purchase Order Number Uniqueness Validation
+- ✅ Foreign Key Validation
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Purchase Orders Table
+- ✅ Swagger CRUD Testing
+
+### Purchase Order APIs
+
+- `POST /purchase-orders/`
+- `GET /purchase-orders/`
+- `GET /purchase-orders/{purchase_order_id}`
+- `PUT /purchase-orders/{purchase_order_id}`
+- `DELETE /purchase-orders/{purchase_order_id}`
+
+---
+
+## Purchase Item Management
+
+- ✅ Purchase Item Model
+- ✅ Purchase Item Schema
+- ✅ Purchase Item Service Layer
+- ✅ Purchase Item CRUD APIs
+- ✅ Purchase Order–Purchase Item Relationship
+- ✅ Product–Purchase Item Relationship
+- ✅ Foreign Key Validation
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Purchase Items Table
+- ✅ Swagger CRUD Testing
+
+### Purchase Item APIs
+
+- `POST /purchase-items/`
+- `GET /purchase-items/`
+- `GET /purchase-items/{purchase_item_id}`
+- `PUT /purchase-items/{purchase_item_id}`
+- `DELETE /purchase-items/{purchase_item_id}`
 # ✨ Implemented Features
 
+---
+# 📊 Stock Transaction Management Module
+
+- ✅ Stock Transaction Model
+- ✅ Stock Transaction Schema
+- ✅ Stock Transaction Service Layer
+- ✅ Stock Transaction CRUD APIs
+- ✅ Product–Stock Transaction Relationship
+- ✅ Stock IN Management
+- ✅ Stock OUT Management
+- ✅ Inventory Quantity Integration
+- ✅ Automatic Inventory Increase for Stock IN
+- ✅ Automatic Inventory Decrease for Stock OUT
+- ✅ Insufficient Stock Validation
+- ✅ Invalid Transaction Type Validation
+- ✅ Foreign Key Validation
+- ✅ JWT Protected Endpoints
+- ✅ PostgreSQL Stock Transactions Table
+- ✅ Swagger CRUD Testing
+- ✅ Inventory Integration Testing
+
+### Stock Transaction APIs
+
+- `POST /stock-transactions/`
+- `GET /stock-transactions/`
+- `GET /stock-transactions/{transaction_id}`
+- `PUT /stock-transactions/{transaction_id}`
+- `DELETE /stock-transactions/{transaction_id}`
 ## 🔐 Authentication
 
 - User Registration
@@ -170,84 +353,49 @@ The project follows a **Three-Tier Architecture** using:
 
 ---
 
-# 🚧 Planned Features
-
 ## 📦 Inventory Management
 
-- Stock In
-- Stock Out
-- Inventory Tracking
-- Stock Transactions
+- Create Inventory Record
+- View Inventory
+- View Inventory by ID
+- Update Inventory
+- Delete Inventory
+- Product–Inventory Relationship
 
 ---
 
 ## 🚚 Supplier Management
 
-- Supplier Records
-- Purchase Orders
-- Supplier History
+- Create Supplier
+- View Suppliers
+- View Supplier by ID
+- Update Supplier
+- Delete Supplier
+- Supplier Data Validation
 
 ---
 
 ## 👥 Customer Management
 
-- Customer Records
-- Customer Purchase History
+- Create Customer
+- View Customers
+- View Customer by ID
+- Update Customer
+- Delete Customer
+- Customer Data Validation
 
 ---
 
 ## 💰 Sales Management
 
-- Sales Invoice
-- Billing
-- Returns
-- Sales History
-
----
-
-## 📊 Dashboard
-
-- Revenue Summary
-- Low Stock Alerts
-- Business Overview
-- AI Insights
-
----
-
-## 📈 Reports
-
-- Sales Reports
-- Inventory Reports
-- Purchase Reports
-- Revenue Reports
-
----
-
-## 🤖 Artificial Intelligence
-
-- Demand Forecasting
-- Inventory Optimization
-- Sales Prediction
-- Stock Recommendations
-
----
-
-# 🏗 System Architecture
-
-BoutiqueIQ follows a **Three-Tier Architecture**.
-
-## Layers
-
-- Presentation Layer (React + TypeScript)
-- Application Layer (FastAPI)
-- Data Layer (PostgreSQL)
-- AI Layer (Scikit-learn)
-
-Architecture Diagram
-
-```text
-docs/diagrams/system-architecture.png
-```
+- Create Sale
+- View Sales
+- View Sale by ID
+- Update Sale
+- Delete Sale
+- Invoice Number Validation
+- Customer–Sales Relationship
+- User–Sales Relationship
 
 ---
 
@@ -255,169 +403,198 @@ docs/diagrams/system-architecture.png
 
 BoutiqueIQ uses **PostgreSQL** as the primary relational database.
 
-### Current Database Tables
+## Current Database Tables
 
-- Roles
-- Users
-- Categories
-- Products
+The current backend database contains:
 
-### Upcoming Tables
-
-- Inventory
-- Suppliers
-- Customers
-- Sales
-- Purchase Orders
-
-ER Diagram
-
-```text
-docs/diagrams/er-diagram.png
-```
+1. `roles`
+2. `users`
+3. `categories`
+4. `products`
+5. `inventory`
+6. `suppliers`
+7. `customers`
+8. `sales`
+9. `purchase_orders`
+10. `purchase_items`
+11. `stock_transactions`
 
 ---
 
-# 🧩 Module Design
+# 🔗 Database Relationships
 
-## ✅ Implemented Modules
-
-- Authentication
-- Category Management
-- Product Management
-
-## 🚧 Upcoming Modules
-
-- Inventory Management
-- Supplier Management
-- Customer Management
-- Sales Management
-- Dashboard
-- Reports
-- AI Prediction
-
-Module Diagram
+The current implemented database relationships are:
 
 ```text
-docs/diagrams/module-diagram.png
-```
+ROLES
+   │
+   │ 1:N
+   ▼
+USERS
+   │
+   ├───────────────┐
+   │               │
+   │ 1:N           │ 1:N
+   ▼               ▼
+SALES        PURCHASE_ORDERS
+                   │
+                   │ 1:N
+                   ▼
+             PURCHASE_ITEMS
+                   │
+                   │ N:1
+                   ▼
+                PRODUCTS
+
+
+CATEGORIES
+   │
+   │ 1:N
+   ▼
+PRODUCTS
+   │
+   ├───────────────┐
+   │               │
+   │ 1:1           │ 1:N
+   ▼               ▼
+INVENTORY   STOCK_TRANSACTIONS
+
+
+SUPPLIERS
+   │
+   ├───────────────┐
+   │               │
+   │ 1:N           │ 1:N
+   ▼               ▼
+PRODUCTS     PURCHASE_ORDERS
+
+
+CUSTOMERS
+   │
+   │ 1:N
+   ▼
+SALES
+
+
+This matches the foreign-key relationships we verified in PostgreSQL.
 
 ---
 
-# 📂 Project Structure
+# 7. Add Backend Integration
 
-```text
-BOUTIQUEIQ
-│
-├── backend
-│   ├── app
-│   │   ├── api
-│   │   ├── core
-│   │   ├── database
-│   │   ├── middlewares
-│   │   ├── models
-│   │   ├── schemas
-│   │   ├── services
-│   │   ├── tests
-│   │   └── utils
-│   ├── .env
-│   └── requirements.txt
-│
-├── frontend
-│   ├── public
-│   └── src
-│       ├── assets
-│       ├── components
-│       ├── contexts
-│       ├── hooks
-│       ├── layouts
-│       ├── pages
-│       ├── routes
-│       ├── services
-│       ├── types
-│       └── utils
-│
-├── docs
-│   ├── api
-│   ├── diagrams
-│   ├── planning
-│   └── reports
-│
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-├── Problem_Statement.md
-└── .gitignore
-```
+After the database relationships section, add:
 
----
+```markdown
+# 🔗 Backend Integration & Validation
+
+The backend modules have been integrated and tested across their database relationships.
+
+## Integration Testing
+
+- ✅ Product → Inventory
+- ✅ Supplier → Purchase Order
+- ✅ Purchase Order → Purchase Item
+- ✅ Purchase Item → Product
+- ✅ Product → Stock Transaction
+- ✅ Stock Transaction → Inventory
+- ✅ Customer → Sales
+- ✅ User → Sales
+- ✅ User → Purchase Order
+
+## Validation
+
+- ✅ JWT authentication validation
+- ✅ Foreign key validation
+- ✅ 404 resource validation
+- ✅ 400 business-rule validation
+- ✅ 422 request validation
+- ✅ Insufficient stock validation
+- ✅ Invalid stock transaction validation
+
+# 🔌 Frontend Integration Preparation
+
+The backend has been prepared for React frontend integration.
+
+## Completed
+
+- ✅ Backend configuration reviewed
+- ✅ CORS configured
+- ✅ Environment variables verified
+- ✅ Frontend API base URL verified
+- ✅ JWT authentication flow verified
+- ✅ Protected API access verified
+- ✅ API response and error handling verified
+- ✅ Frontend-ready API testing completed
+- ✅ Frontend API documentation created
+
+## API Documentation
+
+Frontend API integration documentation:
+
+`docs/api/frontend_api.md`
+
+## Local Development URLs
+
+Backend:
+
+`http://127.0.0.1:8000`
+
+Swagger:
+
+`http://127.0.0.1:8000/docs`
+
+Health Check:
+
+`http://127.0.0.1:8000/health`
+
+Frontend development server:
+
+`http://localhost:5173`
 
 # 📅 Development Progress
 
 | Day | Status |
-|------|--------|
+|-----|--------|
 | Day 1 | ✅ Project Initialization |
 | Day 2 | ✅ Project Setup |
 | Day 3 | ✅ Planning Documents |
 | Day 4 | ✅ System Architecture |
 | Day 5 | ✅ Database Design |
-| Day 6 | ✅ Documentation |
+| Day 6 | ✅ Module Design |
 | Day 7 | ✅ Backend Foundation |
-| Day 8 | ✅ Authentication Module |
+| Day 8 | ✅ Authentication |
 | Day 9 | ✅ Category Management |
 | Day 10 | ✅ Product Management |
-
----
+| Day 11 | ✅ Inventory Management |
+| Day 12 | ✅ Supplier Management |
+| Day 13 | ✅ Customer Management |
+| Day 14 | ✅ Sales Management |
+| Day 15 | ✅ Purchase Management |
+| Day 16 | ✅ Stock Transaction Management |
+| Day 17 | ✅ Backend Integration & Validation |
+| Day 18 | ✅ Backend Preparation for Frontend |
 
 # 📊 Current Progress
 
 | Module | Status |
-|---------|--------|
-| Planning & Design | ✅ 100% |
-| Backend Foundation | ✅ 100% |
-| Authentication | ✅ 100% |
-| Category Management | ✅ 100% |
-| Product Management | ✅ 100% |
-| Inventory Management | ⏳ Planned |
-| Supplier Management | ⏳ Planned |
-| Customer Management | ⏳ Planned |
-| Sales Management | ⏳ Planned |
-| Frontend Development | ⏳ Planned |
-| AI Integration | ⏳ Planned |
-
----
-
-# 🎯 Project Objectives
-
-- Digitize boutique inventory management.
-- Simplify product and supplier management.
-- Improve inventory accuracy.
-- Generate business reports.
-- Predict future product demand using Artificial Intelligence.
-- Optimize inventory levels using Machine Learning.
-
----
-
-# 📌 Future Enhancements
-
-- Barcode / QR Code Support
-- Multi-Branch Boutique Management
-- Mobile Application
-- Cloud Storage Integration
-- Email Notifications
-- AI Sales Analytics
-- Customer Loyalty Program
-
----
-
-# 👨‍💻 Author
-
-**DARWIN S**
-
-**Semester 5 Capstone Project**
-
----
-
-# 📄 License
-
-This project is licensed under the **MIT License**.
+|--------|--------|
+| Planning & Design | ✅ Completed |
+| Backend Foundation | ✅ Completed |
+| Authentication | ✅ Completed |
+| Category Management | ✅ Completed |
+| Product Management | ✅ Completed |
+| Inventory Management | ✅ Completed |
+| Supplier Management | ✅ Completed |
+| Customer Management | ✅ Completed |
+| Sales Management | ✅ Completed |
+| Purchase Order Management | ✅ Completed |
+| Purchase Item Management | ✅ Completed |
+| Stock Transaction Management | ✅ Completed |
+| Backend Integration | ✅ Completed |
+| Frontend API Preparation | ✅ Completed |
+| Dashboard | ⏳ Planned |
+| Reports & Analytics | ⏳ Planned |
+| AI Demand Forecasting | ⏳ Planned |
+| Inventory Optimization | ⏳ Planned |
+| React Frontend Development | ⏳ Planned |
+| Cloud Deployment | ⏳ Planned |
