@@ -407,3 +407,67 @@ All notable changes to the BoutiqueIQ project are documented in this file.
 - `PURCHASE_ORDERS → PURCHASE_ITEMS` (1:N)
 - `PRODUCTS → PURCHASE_ITEMS` (1:N)
 - `PRODUCTS → STOCK_TRANSACTIONS` (1:N)
+---
+
+## Day 19 - Frontend Foundation & API Integration
+
+### Added
+
+- React frontend dependency setup
+- Axios integration
+- React Router integration
+- Centralized Axios API client
+- FastAPI backend API configuration
+- JWT token storage utility
+- Axios JWT authorization interceptor
+- Authentication Context
+- Global authentication state
+- Login functionality
+- Logout functionality
+- Protected frontend routes
+- React Router configuration
+- Dashboard page foundation
+- Login page foundation
+- Category API service
+- Product API service
+- Inventory API service
+- Supplier API service
+- Customer API service
+- Sales API service
+- Purchase Order API service
+- Purchase Item API service
+- Stock Transaction API service
+- React frontend to FastAPI communication testing
+- JWT protected API request testing
+
+### Frontend API Integration
+
+- React → FastAPI `/health` communication verified
+- React → FastAPI `/auth/login` communication verified
+- JWT token generation verified
+- JWT token storage verified
+- JWT Authorization header verified
+- Protected `/products/` API request verified
+- Protected route redirection verified
+- Login → Dashboard navigation verified
+- Logout functionality verified
+
+### Frontend Structure
+
+- `src/contexts/AuthContext.tsx`
+- `src/pages/Login.tsx`
+- `src/pages/Dashboard.tsx`
+- `src/routes/AppRouter.tsx`
+- `src/routes/ProtectedRoute.tsx`
+- `src/services/api.ts`
+- `src/services/authService.ts`
+- `src/services/categoryService.ts`
+- `src/services/productService.ts`
+- `src/services/inventoryService.ts`
+- `src/services/supplierService.ts`
+- `src/services/customerService.ts`
+- `src/services/salesService.ts`
+- `src/services/purchaseOrderService.ts`
+- `src/services/purchaseItemService.ts`
+- `src/services/stockTransactionService.ts`
+- `src/utils/auth.ts`
