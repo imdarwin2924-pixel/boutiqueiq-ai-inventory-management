@@ -5,22 +5,35 @@ export interface Inventory {
   product_id: number;
   quantity: number;
   minimum_stock: number;
-  location?: string | null;
-  last_updated?: string | null;
+  location: string;
+  last_updated: string;
 }
 
 export interface InventoryCreate {
   product_id: number;
   quantity: number;
-  minimum_stock?: number;
-  location?: string;
+  minimum_stock: number;
+  location: string;
 }
 
+export interface InventoryUpdate {
+  product_id: number;
+  quantity: number;
+  minimum_stock: number;
+  location: string;
+}
+
+/*
+ * Get all inventory records
+ */
 export const getInventory = async (): Promise<Inventory[]> => {
   const response = await api.get<Inventory[]>("/inventory/");
   return response.data;
 };
 
+/*
+ * Get inventory by ID
+ */
 export const getInventoryById = async (
   inventoryId: number
 ): Promise<Inventory> => {
@@ -31,6 +44,9 @@ export const getInventoryById = async (
   return response.data;
 };
 
+/*
+ * Create inventory
+ */
 export const createInventory = async (
   inventory: InventoryCreate
 ): Promise<Inventory> => {
@@ -42,9 +58,12 @@ export const createInventory = async (
   return response.data;
 };
 
+/*
+ * Update inventory
+ */
 export const updateInventory = async (
   inventoryId: number,
-  inventory: InventoryCreate
+  inventory: InventoryUpdate
 ): Promise<Inventory> => {
   const response = await api.put<Inventory>(
     `/inventory/${inventoryId}`,
@@ -54,6 +73,9 @@ export const updateInventory = async (
   return response.data;
 };
 
+/*
+ * Delete inventory
+ */
 export const deleteInventory = async (
   inventoryId: number
 ): Promise<void> => {

@@ -15,3 +15,37 @@ export const removeToken = (): void => {
 export const isAuthenticated = (): boolean => {
   return getToken() !== null;
 };
+
+export interface JwtPayload {
+  sub?: string;
+  exp?: number;
+}
+
+export const getCurrentUserEmail = (): string | null => {
+  const token = getToken();
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = token.split(".")[1];
+
+    if (!payload) {
+      return null;
+    }
+
+    const decodedPayload = JSON.parse(
+      atob(payload)
+    ) as JwtPayload;
+
+    return decodedPayload.sub ?? null;
+  } catch (error) {
+    console.error(
+      "Failed to decode JWT:",
+      error
+    );
+
+    return null;
+  }
+};

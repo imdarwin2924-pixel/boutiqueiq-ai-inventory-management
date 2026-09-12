@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models.product import Product
 from app.schemas.product_schema import (
@@ -7,7 +8,10 @@ from app.schemas.product_schema import (
 )
 
 
-def create_product(db: Session, product: ProductCreate):
+def create_product(
+    db: Session,
+    product: ProductCreate,
+):
 
     existing = (
         db.query(Product)
@@ -41,7 +45,10 @@ def get_all_products(db: Session):
     return db.query(Product).all()
 
 
-def get_product_by_id(db: Session, product_id: int):
+def get_product_by_id(
+    db: Session,
+    product_id: int,
+):
     return (
         db.query(Product)
         .filter(Product.product_id == product_id)
@@ -55,10 +62,15 @@ def update_product(
     product: ProductUpdate,
 ):
 
-    existing = get_product_by_id(db, product_id)
+    existing = get_product_by_id(
+        db,
+        product_id,
+    )
 
     if not existing:
-        raise ValueError("Product not found.")
+        raise ValueError(
+            "Product not found."
+        )
 
     existing.category_id = product.category_id
     existing.product_name = product.product_name
@@ -76,14 +88,34 @@ def update_product(
     return existing
 
 
-def delete_product(db: Session, product_id: int):
+def delete_product(
+    db: Session,
+    product_id: int,
+):
 
-    product = get_product_by_id(db, product_id)
+    product = get_product_by_id(
+        db,
+        product_id,
+    )
 
     if not product:
-        raise ValueError("Product not found.")
+        raise ValueError(
+            "Product not found."
+        )
 
-    db.delete(product)
-    db.commit()
+    try:
+        db.delete(product)
+        db.commit()
 
-    return {"message": "Product deleted successfully."}
+    except IntegrityError:
+        db.rollback()
+
+        raise IntegrityError(
+            "Product cannot be deleted because it is referenced by existing records.",
+            params=None,
+            orig=None,
+        )
+
+    return {
+        "message": "Product deleted successfully."
+    }

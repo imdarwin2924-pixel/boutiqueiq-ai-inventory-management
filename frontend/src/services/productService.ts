@@ -2,27 +2,52 @@ import api from "./api";
 
 export interface Product {
   product_id: number;
+
   product_name: string;
+  sku: string;
+  brand: string;
+  size: string;
+  color: string;
+
   description?: string | null;
+
   category_id: number;
   supplier_id?: number | null;
-  price: number;
-  quantity?: number;
+
+  purchase_price: number;
+  selling_price: number;
+
+  stock_quantity: number;
+
   status?: string;
 }
 
 export interface ProductCreate {
   product_name: string;
+
+  sku: string;
+  brand: string;
+  size: string;
+  color: string;
+
   description?: string;
+
   category_id: number;
   supplier_id?: number;
-  price: number;
-  quantity?: number;
+
+  purchase_price: number;
+  selling_price: number;
+
+  stock_quantity: number;
+
   status?: string;
 }
 
 export const getProducts = async (): Promise<Product[]> => {
-  const response = await api.get<Product[]>("/products/");
+  const response = await api.get<Product[]>(
+    "/products/"
+  );
+
   return response.data;
 };
 
@@ -62,5 +87,7 @@ export const updateProduct = async (
 export const deleteProduct = async (
   productId: number
 ): Promise<void> => {
-  await api.delete(`/products/${productId}`);
+  await api.delete(
+    `/products/${productId}`
+  );
 };

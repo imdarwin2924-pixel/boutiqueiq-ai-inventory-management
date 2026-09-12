@@ -11,11 +11,22 @@ export interface CategoryCreate {
   description?: string;
 }
 
+export interface CategoryUpdate {
+  category_name: string;
+  description?: string;
+}
+
+/*
+ * Get all categories
+ */
 export const getCategories = async (): Promise<Category[]> => {
   const response = await api.get<Category[]>("/categories/");
   return response.data;
 };
 
+/*
+ * Get category by ID
+ */
 export const getCategoryById = async (
   categoryId: number
 ): Promise<Category> => {
@@ -26,6 +37,9 @@ export const getCategoryById = async (
   return response.data;
 };
 
+/*
+ * Create category
+ */
 export const createCategory = async (
   category: CategoryCreate
 ): Promise<Category> => {
@@ -37,9 +51,12 @@ export const createCategory = async (
   return response.data;
 };
 
+/*
+ * Update category
+ */
 export const updateCategory = async (
   categoryId: number,
-  category: CategoryCreate
+  category: CategoryUpdate
 ): Promise<Category> => {
   const response = await api.put<Category>(
     `/categories/${categoryId}`,
@@ -49,6 +66,9 @@ export const updateCategory = async (
   return response.data;
 };
 
+/*
+ * Delete category
+ */
 export const deleteCategory = async (
   categoryId: number
 ): Promise<void> => {
