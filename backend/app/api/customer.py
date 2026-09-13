@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database.database import get_db
 from app.core.auth import get_current_user
@@ -29,8 +30,12 @@ def create_new_customer(
 ):
     try:
         return create_customer(db, customer)
+
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 @router.get("/")
@@ -51,8 +56,8 @@ def get_customer(
 
     if not customer:
         raise HTTPException(
-            status_code=404,
-            detail="Customer not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found.",
         )
 
     return customer
@@ -66,9 +71,17 @@ def update_customer_record(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return update_customer(db, customer_id, customer)
+        return update_customer(
+            db,
+            customer_id,
+            customer,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
 
 
 @router.delete("/{customer_id}")
@@ -78,6 +91,23 @@ def delete_customer_record(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return delete_customer(db, customer_id)
+        return delete_customer(
+            db,
+            customer_id,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Customer cannot be deleted because "
+                "this customer is referenced by existing "
+                "sales records."
+            ),
+        )

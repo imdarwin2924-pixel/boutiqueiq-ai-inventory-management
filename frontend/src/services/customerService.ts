@@ -3,16 +3,23 @@ import api from "./api";
 export interface Customer {
   customer_id: number;
   customer_name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 export interface CustomerCreate {
   customer_name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+export interface CustomerUpdate {
+  customer_name: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 export const getCustomers = async (): Promise<Customer[]> => {
@@ -43,7 +50,7 @@ export const createCustomer = async (
 
 export const updateCustomer = async (
   customerId: number,
-  customer: CustomerCreate
+  customer: CustomerUpdate
 ): Promise<Customer> => {
   const response = await api.put<Customer>(
     `/customers/${customerId}`,

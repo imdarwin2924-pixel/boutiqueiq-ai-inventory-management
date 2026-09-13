@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models.customer import Customer
 from app.schemas.customer_schema import (
@@ -73,7 +74,14 @@ def delete_customer(db: Session, customer_id: int):
     if not customer:
         raise ValueError("Customer not found.")
 
-    db.delete(customer)
-    db.commit()
+    try:
+        db.delete(customer)
+        db.commit()
 
-    return {"message": "Customer deleted successfully."}
+    except IntegrityError:
+        db.rollback()
+        raise
+
+    return {
+        "message": "Customer deleted successfully."
+    }

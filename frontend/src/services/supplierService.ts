@@ -3,25 +3,39 @@ import api from "./api";
 export interface Supplier {
   supplier_id: number;
   supplier_name: string;
-  contact_person?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
+  contact_person: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 export interface SupplierCreate {
   supplier_name: string;
-  contact_person?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
+export interface SupplierUpdate {
+  supplier_name: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+/*
+ * Get all suppliers
+ */
 export const getSuppliers = async (): Promise<Supplier[]> => {
   const response = await api.get<Supplier[]>("/suppliers/");
   return response.data;
 };
 
+/*
+ * Get supplier by ID
+ */
 export const getSupplierById = async (
   supplierId: number
 ): Promise<Supplier> => {
@@ -32,6 +46,9 @@ export const getSupplierById = async (
   return response.data;
 };
 
+/*
+ * Create supplier
+ */
 export const createSupplier = async (
   supplier: SupplierCreate
 ): Promise<Supplier> => {
@@ -43,9 +60,12 @@ export const createSupplier = async (
   return response.data;
 };
 
+/*
+ * Update supplier
+ */
 export const updateSupplier = async (
   supplierId: number,
-  supplier: SupplierCreate
+  supplier: SupplierUpdate
 ): Promise<Supplier> => {
   const response = await api.put<Supplier>(
     `/suppliers/${supplierId}`,
@@ -55,6 +75,9 @@ export const updateSupplier = async (
   return response.data;
 };
 
+/*
+ * Delete supplier
+ */
 export const deleteSupplier = async (
   supplierId: number
 ): Promise<void> => {

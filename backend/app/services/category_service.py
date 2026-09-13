@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
@@ -20,7 +21,7 @@ def create_category(db: Session, category: CategoryCreate):
 
     new_category = Category(
         category_name=category.category_name,
-        description=category.description
+        description=category.description,
     )
 
     db.add(new_category)
@@ -47,11 +48,22 @@ def update_category(
     category_id: int,
     category: CategoryUpdate,
 ):
-
     existing = get_category_by_id(db, category_id)
 
     if not existing:
         raise ValueError("Category not found.")
+
+    duplicate = (
+        db.query(Category)
+        .filter(
+            Category.category_name == category.category_name,
+            Category.category_id != category_id,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise ValueError("Category already exists.")
 
     existing.category_name = category.category_name
     existing.description = category.description
@@ -69,7 +81,17 @@ def delete_category(db: Session, category_id: int):
     if not category:
         raise ValueError("Category not found.")
 
-    db.delete(category)
-    db.commit()
+    try:
+        db.delete(category)
+        db.commit()
 
-    return {"message": "Category deleted successfully."}
+        return {
+            "message": "Category deleted successfully."
+        }
+
+    except IntegrityError:
+        db.rollback()
+
+        raise ValueError(
+            "Cannot delete category because it is being used by another record."
+        )

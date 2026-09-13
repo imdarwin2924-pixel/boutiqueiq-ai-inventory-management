@@ -7,12 +7,15 @@ import {
 
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
-import ComingSoon from "../pages/ComingSoon";
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Products from "../pages/Products";
 import Inventory from "../pages/Inventory";
 import Categories from "../pages/Categories";
+import Suppliers from "../pages/Suppliers";
+import Customers from "../pages/Customers";
+import Sales from "../pages/Sales";
+import Purchases from "../pages/Purchases";
 
 function AppRouter() {
   return (
@@ -66,30 +69,20 @@ function AppRouter() {
             {/* Suppliers */}
             <Route
               path="/suppliers"
-              element={
-                <ComingSoon
-                  title="Suppliers"
-                />
-              }
+              element={<Suppliers />}
             />
 
             {/* Customers */}
             <Route
               path="/customers"
-              element={
-                <ComingSoon
-                  title="Customers"
-                />
-              }
+              element={<Customers />}
             />
 
             {/* Sales */}
             <Route
               path="/sales"
               element={
-                <ComingSoon
-                  title="Sales"
-                />
+                <Sales />
               }
             />
 
@@ -97,9 +90,7 @@ function AppRouter() {
             <Route
               path="/purchases"
               element={
-                <ComingSoon
-                  title="Purchases"
-                />
+                <Purchases />
               }
             />
 

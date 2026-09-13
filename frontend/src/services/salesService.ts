@@ -7,8 +7,7 @@ export interface Sale {
   invoice_number: string;
   sale_date: string;
   total_amount: number;
-  payment_method?: string | null;
-  status?: string | null;
+  payment_method: string;
 }
 
 export interface SaleCreate {
@@ -17,8 +16,7 @@ export interface SaleCreate {
   invoice_number: string;
   sale_date: string;
   total_amount: number;
-  payment_method?: string;
-  status?: string;
+  payment_method: string;
 }
 
 export const getSales = async (): Promise<Sale[]> => {

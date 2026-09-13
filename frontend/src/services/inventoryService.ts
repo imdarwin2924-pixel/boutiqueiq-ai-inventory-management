@@ -80,4 +80,4 @@ export const deleteInventory = async (
   inventoryId: number
 ): Promise<void> => {
   await api.delete(`/inventory/${inventoryId}`);
-};
+};  
