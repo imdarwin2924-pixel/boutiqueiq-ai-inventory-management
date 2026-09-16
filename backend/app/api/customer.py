@@ -1,6 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from app.database.database import get_db
 from app.core.auth import get_current_user
@@ -19,6 +24,7 @@ from app.services.customer_service import (
     delete_customer,
 )
 
+
 router = APIRouter()
 
 
@@ -29,12 +35,23 @@ def create_new_customer(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return create_customer(db, customer)
+        return create_customer(
+            db,
+            customer,
+        )
 
     except ValueError as e:
+        message = str(e)
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail=message,
         )
 
 
@@ -52,7 +69,10 @@ def get_customer(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    customer = get_customer_by_id(db, customer_id)
+    customer = get_customer_by_id(
+        db,
+        customer_id,
+    )
 
     if not customer:
         raise HTTPException(
@@ -78,9 +98,23 @@ def update_customer_record(
         )
 
     except ValueError as e:
+        message = str(e)
+
+        if "Customer not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
         )
 
 
@@ -97,17 +131,15 @@ def delete_customer_record(
         )
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+        message = str(e)
 
-    except IntegrityError:
+        if "Customer not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "Customer cannot be deleted because "
-                "this customer is referenced by existing "
-                "sales records."
-            ),
+            detail=message,
         )

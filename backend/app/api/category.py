@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -29,8 +29,20 @@ def create_new_category(
 ):
     try:
         return create_category(db, category)
+
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        message = str(e)
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
 
 
 @router.get("/")
@@ -50,7 +62,10 @@ def get_category(
     category = get_category_by_id(db, category_id)
 
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found.",
+        )
 
     return category
 
@@ -63,9 +78,31 @@ def update_existing_category(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return update_category(db, category_id, category)
+        return update_category(
+            db,
+            category_id,
+            category,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        message = str(e)
+
+        if "Category not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
 
 
 @router.delete("/{category_id}")
@@ -75,6 +112,21 @@ def remove_category(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return delete_category(db, category_id)
+        return delete_category(
+            db,
+            category_id,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        message = str(e)
+
+        if "Category not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=message,
+        )

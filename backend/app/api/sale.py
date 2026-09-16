@@ -2,17 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.schemas.sale import SaleCreate, SaleResponse
-from app.services.sale_service import (
-    create_sale,
-    get_all_sales,
-    get_sale_by_id,
-)
+from app.core.auth import get_current_user
+from app.models.user import User
 
-router = APIRouter(
-    prefix="/sales",
-    tags=["Sales"],
-)
+from app.schemas.sale import SaleCreate, SaleResponse
+
 from app.services.sale_service import (
     create_sale,
     get_all_sales,
@@ -20,6 +14,13 @@ from app.services.sale_service import (
     update_sale,
     delete_sale,
 )
+
+
+router = APIRouter(
+    prefix="/sales",
+    tags=["Sales"],
+)
+
 
 @router.post(
     "/",
@@ -29,12 +30,17 @@ from app.services.sale_service import (
 def create_new_sale(
     sale: SaleCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    new_sale = create_sale(db, sale)
+    new_sale = create_sale(
+        db,
+        sale,
+        current_user.user_id,
+    )
 
     if new_sale is None:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Invoice number already exists",
         )
 
@@ -47,6 +53,7 @@ def create_new_sale(
 )
 def get_sales(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return get_all_sales(db)
 
@@ -58,16 +65,19 @@ def get_sales(
 def get_single_sale(
     sale_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     sale = get_sale_by_id(db, sale_id)
 
     if sale is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Sale not found",
         )
 
     return sale
+
+
 @router.put(
     "/{sale_id}",
     response_model=SaleResponse,
@@ -76,18 +86,23 @@ def update_existing_sale(
     sale_id: int,
     sale: SaleCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    updated_sale = update_sale(db, sale_id, sale)
+    updated_sale = update_sale(
+        db,
+        sale_id,
+        sale,
+    )
 
     if updated_sale is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Sale not found",
         )
 
     if updated_sale == "duplicate":
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Invoice number already exists",
         )
 
@@ -100,12 +115,16 @@ def update_existing_sale(
 def remove_sale(
     sale_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    deleted_sale = delete_sale(db, sale_id)
+    deleted_sale = delete_sale(
+        db,
+        sale_id,
+    )
 
     if deleted_sale is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Sale not found",
         )
 

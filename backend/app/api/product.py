@@ -6,7 +6,6 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from app.database.database import get_db
 from app.core.auth import get_current_user
@@ -42,9 +41,23 @@ def create_new_product(
         )
 
     except ValueError as e:
+        message = str(e)
+
+        if "Category not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "SKU already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail=message,
         )
 
 
@@ -91,9 +104,29 @@ def update_existing_product(
         )
 
     except ValueError as e:
+        message = str(e)
+
+        if "Product not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "Category not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "SKU already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
         )
 
 
@@ -110,17 +143,15 @@ def remove_product(
         )
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+        message = str(e)
 
-    except IntegrityError:
+        if "Product not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "Product cannot be deleted because "
-                "it is referenced by existing inventory "
-                "or transaction records."
-            ),
+            detail=message,
         )

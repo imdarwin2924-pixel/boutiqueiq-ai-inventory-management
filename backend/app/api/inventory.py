@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -18,6 +24,7 @@ from app.services.inventory_service import (
     delete_inventory,
 )
 
+
 router = APIRouter()
 
 
@@ -28,9 +35,30 @@ def create_new_inventory(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return create_inventory(db, inventory)
+        return create_inventory(
+            db,
+            inventory,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        message = str(e)
+
+        if "Product not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
 
 
 @router.get("/")
@@ -47,12 +75,15 @@ def get_inventory_record(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    inventory = get_inventory_by_id(db, inventory_id)
+    inventory = get_inventory_by_id(
+        db,
+        inventory_id,
+    )
 
     if not inventory:
         raise HTTPException(
-            status_code=404,
-            detail="Inventory record not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inventory record not found.",
         )
 
     return inventory
@@ -66,9 +97,37 @@ def update_inventory_record(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return update_inventory(db, inventory_id, inventory)
+        return update_inventory(
+            db,
+            inventory_id,
+            inventory,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        message = str(e)
+
+        if "Inventory record not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "Product not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        if "already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
 
 
 @router.delete("/{inventory_id}")
@@ -78,6 +137,21 @@ def delete_inventory_record(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        return delete_inventory(db, inventory_id)
+        return delete_inventory(
+            db,
+            inventory_id,
+        )
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e)) 
+        message = str(e)
+
+        if "Inventory record not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=message,
+        )

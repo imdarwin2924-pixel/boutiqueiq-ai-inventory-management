@@ -8,16 +8,22 @@ from app.schemas.customer_schema import (
 )
 
 
-def create_customer(db: Session, customer: CustomerCreate):
-
+def create_customer(
+    db: Session,
+    customer: CustomerCreate,
+):
     existing = (
         db.query(Customer)
-        .filter(Customer.email == customer.email)
+        .filter(
+            Customer.email == customer.email
+        )
         .first()
     )
 
     if existing:
-        raise ValueError("Customer with this email already exists.")
+        raise ValueError(
+            "Customer with this email already exists."
+        )
 
     new_customer = Customer(
         customer_name=customer.customer_name,
@@ -26,9 +32,16 @@ def create_customer(db: Session, customer: CustomerCreate):
         address=customer.address,
     )
 
-    db.add(new_customer)
-    db.commit()
-    db.refresh(new_customer)
+    try:
+        db.add(new_customer)
+        db.commit()
+        db.refresh(new_customer)
+
+    except IntegrityError:
+        db.rollback()
+        raise ValueError(
+            "Unable to create customer because of a database constraint."
+        )
 
     return new_customer
 
@@ -37,10 +50,15 @@ def get_all_customers(db: Session):
     return db.query(Customer).all()
 
 
-def get_customer_by_id(db: Session, customer_id: int):
+def get_customer_by_id(
+    db: Session,
+    customer_id: int,
+):
     return (
         db.query(Customer)
-        .filter(Customer.customer_id == customer_id)
+        .filter(
+            Customer.customer_id == customer_id
+        )
         .first()
     )
 
@@ -50,29 +68,61 @@ def update_customer(
     customer_id: int,
     customer: CustomerUpdate,
 ):
-
-    existing = get_customer_by_id(db, customer_id)
+    existing = get_customer_by_id(
+        db,
+        customer_id,
+    )
 
     if not existing:
-        raise ValueError("Customer not found.")
+        raise ValueError(
+            "Customer not found."
+        )
+
+    duplicate = (
+        db.query(Customer)
+        .filter(
+            Customer.email == customer.email,
+            Customer.customer_id != customer_id,
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise ValueError(
+            "Customer with this email already exists."
+        )
 
     existing.customer_name = customer.customer_name
     existing.phone = customer.phone
     existing.email = customer.email
     existing.address = customer.address
 
-    db.commit()
-    db.refresh(existing)
+    try:
+        db.commit()
+        db.refresh(existing)
+
+    except IntegrityError:
+        db.rollback()
+        raise ValueError(
+            "Unable to update customer because of a database constraint."
+        )
 
     return existing
 
 
-def delete_customer(db: Session, customer_id: int):
-
-    customer = get_customer_by_id(db, customer_id)
+def delete_customer(
+    db: Session,
+    customer_id: int,
+):
+    customer = get_customer_by_id(
+        db,
+        customer_id,
+    )
 
     if not customer:
-        raise ValueError("Customer not found.")
+        raise ValueError(
+            "Customer not found."
+        )
 
     try:
         db.delete(customer)
@@ -80,7 +130,9 @@ def delete_customer(db: Session, customer_id: int):
 
     except IntegrityError:
         db.rollback()
-        raise
+        raise ValueError(
+            "Cannot delete customer because it is being used by another record."
+        )
 
     return {
         "message": "Customer deleted successfully."

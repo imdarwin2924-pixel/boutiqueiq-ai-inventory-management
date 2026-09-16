@@ -12,7 +12,6 @@ export interface PurchaseOrder {
 
 export interface PurchaseOrderCreate {
   supplier_id: number;
-  user_id: number;
   order_number: string;
   order_date: string;
   total_amount: number;
@@ -20,10 +19,7 @@ export interface PurchaseOrderCreate {
 }
 
 export const getPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
-  const response = await api.get<PurchaseOrder[]>(
-    "/purchase-orders/"
-  );
-
+  const response = await api.get<PurchaseOrder[]>("/purchase-orders/");
   return response.data;
 };
 
@@ -63,7 +59,5 @@ export const updatePurchaseOrder = async (
 export const deletePurchaseOrder = async (
   purchaseOrderId: number
 ): Promise<void> => {
-  await api.delete(
-    `/purchase-orders/${purchaseOrderId}`
-  );
+  await api.delete(`/purchase-orders/${purchaseOrderId}`);
 };

@@ -24,7 +24,6 @@ interface ApiErrorResponse {
 
 interface SaleFormData {
   customer_id: string;
-  user_id: string;
   invoice_number: string;
   sale_date: string;
   total_amount: string;
@@ -45,7 +44,6 @@ const getCurrentDateTime = (): string => {
 
 const getInitialFormData = (): SaleFormData => ({
   customer_id: "",
-  user_id: "",
   invoice_number: "",
   sale_date: getCurrentDateTime(),
   total_amount: "",
@@ -72,8 +70,7 @@ function Sales() {
     useState<SaleFormData>(getInitialFormData);
 
   /*
-   * Load only sales.
-   * Used after create, update and delete.
+   * Load sales.
    */
   const loadSales = async () => {
     try {
@@ -138,9 +135,7 @@ function Sales() {
               "Failed to load sales data."
           );
         } else {
-          setError(
-            "Failed to load sales data."
-          );
+          setError("Failed to load sales data.");
         }
       } finally {
         if (mounted) {
@@ -209,7 +204,6 @@ function Sales() {
 
     setFormData({
       customer_id: String(sale.customer_id),
-      user_id: String(sale.user_id),
       invoice_number: sale.invoice_number,
       sale_date: localDate
         .toISOString()
@@ -229,19 +223,6 @@ function Sales() {
   const validateForm = (): boolean => {
     if (!formData.customer_id) {
       setError("Please select a customer.");
-      return false;
-    }
-
-    const userId = Number(formData.user_id);
-
-    if (
-      !formData.user_id ||
-      !Number.isInteger(userId) ||
-      userId <= 0
-    ) {
-      setError(
-        "User ID must be a valid positive integer."
-      );
       return false;
     }
 
@@ -336,7 +317,6 @@ function Sales() {
       customer_id: Number(
         formData.customer_id
       ),
-      user_id: Number(formData.user_id),
       invoice_number: invoiceNumber,
       sale_date: new Date(
         formData.sale_date
@@ -607,25 +587,6 @@ function Sales() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* USER ID */}
-              <div className="form-group">
-                <label htmlFor="user_id">
-                  User ID
-                </label>
-
-                <input
-                  id="user_id"
-                  name="user_id"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={formData.user_id}
-                  onChange={handleInputChange}
-                  placeholder="Enter user ID"
-                  disabled={saving}
-                />
               </div>
 
               {/* INVOICE */}

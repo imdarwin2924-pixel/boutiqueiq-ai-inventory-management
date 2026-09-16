@@ -45,7 +45,6 @@ interface PurchaseItemForm {
 
 interface PurchaseFormData {
   supplier_id: string;
-  user_id: string;
   order_number: string;
   order_date: string;
   status: string;
@@ -71,28 +70,19 @@ const createEmptyItem = (): PurchaseItemForm => ({
 
 const createInitialOrderForm = (): PurchaseFormData => ({
   supplier_id: "",
-  user_id: "",
   order_number: "",
   order_date: getCurrentDateTime(),
   status: "Pending",
 });
 
 function Purchases() {
-  const [orders, setOrders] = useState<
-    PurchaseOrder[]
-  >([]);
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
 
-  const [items, setItems] = useState<
-    PurchaseItem[]
-  >([]);
+  const [items, setItems] = useState<PurchaseItem[]>([]);
 
-  const [suppliers, setSuppliers] = useState<
-    Supplier[]
-  >([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
-  const [products, setProducts] = useState<
-    Product[]
-  >([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -308,7 +298,6 @@ function Purchases() {
       supplier_id: String(
         order.supplier_id
       ),
-      user_id: String(order.user_id),
       order_number: order.order_number,
       order_date: localDate
         .toISOString()
@@ -382,13 +371,6 @@ function Purchases() {
     if (!orderForm.supplier_id) {
       setError(
         "Please select a supplier."
-      );
-      return false;
-    }
-
-    if (!orderForm.user_id) {
-      setError(
-        "User ID is required."
       );
       return false;
     }
@@ -514,9 +496,6 @@ function Purchases() {
       const orderPayload: PurchaseOrderCreate = {
         supplier_id: Number(
           orderForm.supplier_id
-        ),
-        user_id: Number(
-          orderForm.user_id
         ),
         order_number: orderNumber,
         order_date: new Date(
@@ -913,27 +892,6 @@ function Purchases() {
                     )
                   )}
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="user_id">
-                  User ID
-                </label>
-
-                <input
-                  id="user_id"
-                  name="user_id"
-                  type="number"
-                  min="1"
-                  value={
-                    orderForm.user_id
-                  }
-                  onChange={
-                    handleOrderInputChange
-                  }
-                  placeholder="Enter user ID"
-                  disabled={saving}
-                />
               </div>
 
               <div className="form-group">

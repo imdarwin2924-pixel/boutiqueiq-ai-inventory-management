@@ -12,7 +12,6 @@ export interface Sale {
 
 export interface SaleCreate {
   customer_id: number;
-  user_id: number;
   invoice_number: string;
   sale_date: string;
   total_amount: number;
