@@ -1,8 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.core.auth import get_current_user
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
 from app.models.user import User
 
 from app.schemas.purchase_item import (
@@ -25,6 +36,11 @@ router = APIRouter(
 )
 
 
+# ==========================================================
+# CREATE PURCHASE ITEM
+# Admin + Manager only
+# ==========================================================
+
 @router.post(
     "/",
     response_model=PurchaseItemResponse,
@@ -33,7 +49,9 @@ router = APIRouter(
 def create_new_purchase_item(
     purchase_item: PurchaseItemCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return create_purchase_item(
@@ -74,16 +92,28 @@ def create_new_purchase_item(
         )
 
 
+# ==========================================================
+# GET ALL PURCHASE ITEMS
+# All authenticated users
+# ==========================================================
+
 @router.get(
     "/",
     response_model=list[PurchaseItemResponse],
 )
 def get_purchase_items(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     return get_all_purchase_items(db)
 
+
+# ==========================================================
+# GET PURCHASE ITEM BY ID
+# All authenticated users
+# ==========================================================
 
 @router.get(
     "/{purchase_item_id}",
@@ -92,7 +122,9 @@ def get_purchase_items(
 def get_purchase_item(
     purchase_item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     purchase_item = get_purchase_item_by_id(
         db,
@@ -108,6 +140,11 @@ def get_purchase_item(
     return purchase_item
 
 
+# ==========================================================
+# UPDATE PURCHASE ITEM
+# Admin + Manager only
+# ==========================================================
+
 @router.put(
     "/{purchase_item_id}",
     response_model=PurchaseItemResponse,
@@ -116,7 +153,9 @@ def update_existing_purchase_item(
     purchase_item_id: int,
     purchase_item: PurchaseItemCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         updated_item = update_purchase_item(
@@ -166,13 +205,20 @@ def update_existing_purchase_item(
         )
 
 
+# ==========================================================
+# DELETE PURCHASE ITEM
+# Admin + Manager only
+# ==========================================================
+
 @router.delete(
     "/{purchase_item_id}",
 )
 def delete_existing_purchase_item(
     purchase_item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         deleted_item = delete_purchase_item(

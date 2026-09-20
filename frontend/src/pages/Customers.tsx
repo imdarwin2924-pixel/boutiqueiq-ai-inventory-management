@@ -14,6 +14,8 @@ import type {
   CustomerCreate,
 } from "../services/customerService";
 
+import { useAuth } from "../hooks/useAuth";
+
 interface ApiErrorResponse {
   detail?: string;
 }
@@ -26,9 +28,15 @@ const initialFormData: CustomerCreate = {
 };
 
 function Customers() {
+  const { isAdmin, isManager } = useAuth();
+
+  const canManageCustomers = isAdmin || isManager;
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingCustomerId, setDeletingCustomerId] =
+    useState<number | null>(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -42,6 +50,39 @@ function Customers() {
   const [formData, setFormData] =
     useState<CustomerCreate>(initialFormData);
 
+  const getErrorMessage = (
+    err: unknown,
+    fallback: string
+  ): string => {
+    if (axios.isAxiosError<ApiErrorResponse>(err)) {
+      if (err.response?.status === 401) {
+        return "Your session has expired. Please log in again.";
+      }
+
+      if (err.response?.status === 403) {
+        return "You do not have permission to perform this action.";
+      }
+
+      if (err.response?.status === 404) {
+        return "Customer not found.";
+      }
+
+      if (err.response?.status === 409) {
+        return (
+          err.response.data?.detail ||
+          "This customer already exists or is linked to existing records."
+        );
+      }
+
+      return (
+        err.response?.data?.detail ||
+        fallback
+      );
+    }
+
+    return fallback;
+  };
+
   const loadCustomers = async () => {
     try {
       setLoading(true);
@@ -50,16 +91,17 @@ function Customers() {
       const data = await getCustomers();
       setCustomers(data);
     } catch (err) {
-      console.error("Failed to load customers:", err);
+      console.error(
+        "Failed to load customers:",
+        err
+      );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        setError(
-          err.response?.data?.detail ||
-            "Failed to load customers."
-        );
-      } else {
-        setError("Failed to load customers.");
-      }
+      setError(
+        getErrorMessage(
+          err,
+          "Failed to load customers."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -79,17 +121,18 @@ function Customers() {
           setCustomers(data);
         }
       } catch (err) {
-        console.error("Failed to load customers:", err);
+        console.error(
+          "Failed to load customers:",
+          err
+        );
 
         if (mounted) {
-          if (axios.isAxiosError<ApiErrorResponse>(err)) {
-            setError(
-              err.response?.data?.detail ||
-                "Failed to load customers."
-            );
-          } else {
-            setError("Failed to load customers.");
-          }
+          setError(
+            getErrorMessage(
+              err,
+              "Failed to load customers."
+            )
+          );
         }
       } finally {
         if (mounted) {
@@ -125,6 +168,13 @@ function Customers() {
   };
 
   const handleAddCustomer = () => {
+    if (!canManageCustomers) {
+      setError(
+        "You do not have permission to add customers."
+      );
+      return;
+    }
+
     setSuccess("");
     setError("");
     setFormData(initialFormData);
@@ -132,7 +182,16 @@ function Customers() {
     setShowForm(true);
   };
 
-  const handleEditCustomer = (customer: Customer) => {
+  const handleEditCustomer = (
+    customer: Customer
+  ) => {
+    if (!canManageCustomers) {
+      setError(
+        "You do not have permission to edit customers."
+      );
+      return;
+    }
+
     setSuccess("");
     setError("");
 
@@ -186,7 +245,9 @@ function Customers() {
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
+      setError(
+        "Please enter a valid email address."
+      );
       return false;
     }
 
@@ -203,6 +264,13 @@ function Customers() {
   ) => {
     event.preventDefault();
 
+    if (!canManageCustomers) {
+      setError(
+        "You do not have permission to manage customers."
+      );
+      return;
+    }
+
     setError("");
     setSuccess("");
 
@@ -217,7 +285,8 @@ function Customers() {
       (customer) =>
         customer.email.trim().toLowerCase() ===
           normalizedEmail &&
-        customer.customer_id !== editingCustomerId
+        customer.customer_id !==
+          editingCustomerId
     );
 
     if (duplicateEmail) {
@@ -228,7 +297,8 @@ function Customers() {
     }
 
     const payload: CustomerCreate = {
-      customer_name: formData.customer_name.trim(),
+      customer_name:
+        formData.customer_name.trim(),
       phone: formData.phone.trim(),
       email: normalizedEmail,
       address: formData.address.trim(),
@@ -257,16 +327,17 @@ function Customers() {
       resetForm();
       await loadCustomers();
     } catch (err) {
-      console.error("Failed to save customer:", err);
+      console.error(
+        "Failed to save customer:",
+        err
+      );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        setError(
-          err.response?.data?.detail ||
-            "Failed to save customer."
-        );
-      } else {
-        setError("Failed to save customer.");
-      }
+      setError(
+        getErrorMessage(
+          err,
+          "Failed to save customer."
+        )
+      );
     } finally {
       setSaving(false);
     }
@@ -275,6 +346,13 @@ function Customers() {
   const handleDeleteCustomer = async (
     customerId: number
   ) => {
+    if (!canManageCustomers) {
+      setError(
+        "You do not have permission to delete customers."
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       "Are you sure you want to delete this customer?"
     );
@@ -285,6 +363,7 @@ function Customers() {
 
     setError("");
     setSuccess("");
+    setDeletingCustomerId(customerId);
 
     try {
       await deleteCustomer(customerId);
@@ -300,21 +379,14 @@ function Customers() {
         err
       );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        if (err.response?.status === 409) {
-          setError(
-            err.response.data?.detail ||
-              "Customer cannot be deleted because it is linked to existing sales."
-          );
-        } else {
-          setError(
-            err.response?.data?.detail ||
-              "Failed to delete customer."
-          );
-        }
-      } else {
-        setError("Failed to delete customer.");
-      }
+      setError(
+        getErrorMessage(
+          err,
+          "Failed to delete customer."
+        )
+      );
+    } finally {
+      setDeletingCustomerId(null);
     }
   };
 
@@ -350,18 +422,21 @@ function Customers() {
       <div className="page-header">
         <div>
           <h1>Customers</h1>
+
           <p>
             Manage your boutique customers
           </p>
         </div>
 
-        <button
-          type="button"
-          className="primary-button"
-          onClick={handleAddCustomer}
-        >
-          + Add Customer
-        </button>
+        {canManageCustomers && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={handleAddCustomer}
+          >
+            + Add Customer
+          </button>
+        )}
       </div>
 
       {error && (
@@ -398,7 +473,7 @@ function Customers() {
         </div>
       </div>
 
-      {showForm && (
+      {showForm && canManageCustomers && (
         <div className="product-form-container">
           <div className="product-form-header">
             <div>
@@ -430,7 +505,9 @@ function Customers() {
                   id="customer_name"
                   name="customer_name"
                   type="text"
-                  value={formData.customer_name}
+                  value={
+                    formData.customer_name
+                  }
                   onChange={handleInputChange}
                   placeholder="Enter customer name"
                   disabled={saving}
@@ -503,7 +580,8 @@ function Customers() {
               >
                 {saving
                   ? "Saving..."
-                  : editingCustomerId !== null
+                  : editingCustomerId !==
+                      null
                     ? "Update Customer"
                     : "Add Customer"}
               </button>
@@ -545,7 +623,10 @@ function Customers() {
                 <th>Phone</th>
                 <th>Email</th>
                 <th>Address</th>
-                <th>Actions</th>
+
+                {canManageCustomers && (
+                  <th>Actions</th>
+                )}
               </tr>
             </thead>
 
@@ -553,51 +634,78 @@ function Customers() {
               {filteredCustomers.map(
                 (customer) => (
                   <tr
-                    key={customer.customer_id}
+                    key={
+                      customer.customer_id
+                    }
                   >
                     <td>
-                      #{customer.customer_id}
+                      #
+                      {
+                        customer.customer_id
+                      }
                     </td>
 
                     <td>
                       <strong>
-                        {customer.customer_name}
+                        {
+                          customer.customer_name
+                        }
                       </strong>
                     </td>
 
-                    <td>{customer.phone}</td>
-
-                    <td>{customer.email}</td>
-
-                    <td>{customer.address}</td>
+                    <td>
+                      {customer.phone}
+                    </td>
 
                     <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="secondary-button"
-                          onClick={() =>
-                            handleEditCustomer(
-                              customer
-                            )
-                          }
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          className="delete-button"
-                          onClick={() =>
-                            void handleDeleteCustomer(
-                              customer.customer_id
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      {customer.email}
                     </td>
+
+                    <td>
+                      {customer.address}
+                    </td>
+
+                    {canManageCustomers && (
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() =>
+                              handleEditCustomer(
+                                customer
+                              )
+                            }
+                            disabled={
+                              saving ||
+                              deletingCustomerId !==
+                                null
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() =>
+                              void handleDeleteCustomer(
+                                customer.customer_id
+                              )
+                            }
+                            disabled={
+                              deletingCustomerId !==
+                                null
+                            }
+                          >
+                            {deletingCustomerId ===
+                            customer.customer_id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 )
               )}

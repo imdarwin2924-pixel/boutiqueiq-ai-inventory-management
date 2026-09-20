@@ -9,6 +9,7 @@ import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
+
 import Products from "../pages/Products";
 import Inventory from "../pages/Inventory";
 import Categories from "../pages/Categories";
@@ -16,12 +17,17 @@ import Suppliers from "../pages/Suppliers";
 import Customers from "../pages/Customers";
 import Sales from "../pages/Sales";
 import Purchases from "../pages/Purchases";
+import StockHistory from "../pages/StockHistory";
 
 function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default Route */}
+
+        {/* =====================================================
+            DEFAULT ROUTE
+        ===================================================== */}
+
         <Route
           path="/"
           element={
@@ -32,15 +38,25 @@ function AppRouter() {
           }
         />
 
-        {/* Login */}
+        {/* =====================================================
+            LOGIN
+        ===================================================== */}
+
         <Route
           path="/login"
           element={<Login />}
         />
 
-        {/* Protected Routes */}
+        {/* =====================================================
+            PROTECTED ROUTES
+        ===================================================== */}
+
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
+
+            {/* =================================================
+                ALL AUTHENTICATED USERS
+            ================================================= */}
 
             {/* Dashboard */}
             <Route
@@ -60,16 +76,10 @@ function AppRouter() {
               element={<Inventory />}
             />
 
-            {/* Categories */}
+            {/* Stock History */}
             <Route
-              path="/categories"
-              element={<Categories />}
-            />
-
-            {/* Suppliers */}
-            <Route
-              path="/suppliers"
-              element={<Suppliers />}
+              path="/stock-history"
+              element={<StockHistory />}
             />
 
             {/* Customers */}
@@ -81,21 +91,45 @@ function AppRouter() {
             {/* Sales */}
             <Route
               path="/sales"
-              element={
-                <Sales />
-              }
+              element={<Sales />}
             />
 
-            {/* Purchases */}
+            {/* =================================================
+                ADMIN + MANAGER ONLY
+            ================================================= */}
+
+            {/* Categories */}
             <Route
-              path="/purchases"
               element={
-                <Purchases />
+                <ProtectedRoute
+                  allowedRoles={[
+                    "Admin",
+                    "Manager",
+                  ]}
+                />
               }
-            />
+            >
+              <Route
+                path="/categories"
+                element={<Categories />}
+              />
+
+              {/* Suppliers */}
+              <Route
+                path="/suppliers"
+                element={<Suppliers />}
+              />
+
+              {/* Purchases */}
+              <Route
+                path="/purchases"
+                element={<Purchases />}
+              />
+            </Route>
 
           </Route>
         </Route>
+
       </Routes>
     </BrowserRouter>
   );

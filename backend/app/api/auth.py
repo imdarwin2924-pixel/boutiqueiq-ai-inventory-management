@@ -1,13 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.schemas.user_schema import UserLogin
-from app.services.auth_service import login_user
-from app.database.database import get_db
-from app.schemas.user_schema import UserRegister
-from app.services.auth_service import register_user
-from app.core.auth import get_current_user
-from app.models.user import User
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
+from app.database.database import get_db
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
+from app.models.user import User
+
+from app.schemas.user_schema import UserRegister
+
+from app.services.auth_service import (
+    register_user,
+    login_user,
+)
+
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
@@ -32,6 +43,8 @@ def register(
             status_code=400,
             detail=str(e)
         )
+
+
 @router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -49,6 +62,8 @@ def login(
             status_code=401,
             detail=str(e)
         )
+
+
 @router.get("/me")
 def get_profile(
     current_user: User = Depends(get_current_user)
@@ -59,4 +74,25 @@ def get_profile(
         "email": current_user.email,
         "phone": current_user.phone,
         "status": current_user.status,
+        "role_id": current_user.role_id,
+        "role_name": (
+            current_user.role.role_name
+            if current_user.role
+            else None
+        ),
+    }
+
+
+@router.get("/rbac-test")
+def rbac_test(
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    )
+):
+    return {
+        "message": "RBAC authorization successful.",
+        "user_id": current_user.user_id,
+        "full_name": current_user.full_name,
+        "role_id": current_user.role_id,
+        "role_name": current_user.role.role_name,
     }

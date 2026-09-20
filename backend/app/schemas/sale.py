@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SaleBase(BaseModel):
@@ -13,6 +13,24 @@ class SaleBase(BaseModel):
 
 class SaleCreate(SaleBase):
     pass
+
+
+# ==========================================================
+# SALE ITEM INPUT
+# ==========================================================
+
+class SaleItemInput(BaseModel):
+    product_id: int
+    quantity: int = Field(gt=0)
+    unit_price: float = Field(gt=0)
+
+
+# ==========================================================
+# SALE WITH ITEMS
+# ==========================================================
+
+class SaleWithItemsCreate(SaleBase):
+    items: list[SaleItemInput] = Field(min_length=1)
 
 
 class SaleResponse(SaleBase):

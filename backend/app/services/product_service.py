@@ -14,7 +14,10 @@ def create_product(
     db: Session,
     product: ProductCreate,
 ):
+    # --------------------------------------------------
     # Validate category
+    # --------------------------------------------------
+
     category = (
         db.query(Category)
         .filter(
@@ -28,7 +31,10 @@ def create_product(
             "Category not found."
         )
 
+    # --------------------------------------------------
     # Check duplicate SKU
+    # --------------------------------------------------
+
     if product.sku:
         existing = (
             db.query(Product)
@@ -43,6 +49,16 @@ def create_product(
                 "SKU already exists."
             )
 
+    # --------------------------------------------------
+    # Create product
+    # --------------------------------------------------
+    #
+    # IMPORTANT:
+    # stock_quantity is intentionally NOT assigned here.
+    #
+    # Current stock is managed by inventory.quantity.
+    # --------------------------------------------------
+
     new_product = Product(
         category_id=product.category_id,
         product_name=product.product_name,
@@ -52,7 +68,6 @@ def create_product(
         color=product.color,
         purchase_price=product.purchase_price,
         selling_price=product.selling_price,
-        stock_quantity=product.stock_quantity,
     )
 
     try:
@@ -62,6 +77,7 @@ def create_product(
 
     except IntegrityError:
         db.rollback()
+
         raise ValueError(
             "Unable to create product because of a database constraint."
         )
@@ -69,8 +85,13 @@ def create_product(
     return new_product
 
 
-def get_all_products(db: Session):
-    return db.query(Product).all()
+def get_all_products(
+    db: Session,
+):
+    return (
+        db.query(Product)
+        .all()
+    )
 
 
 def get_product_by_id(
@@ -101,7 +122,10 @@ def update_product(
             "Product not found."
         )
 
+    # --------------------------------------------------
     # Validate category
+    # --------------------------------------------------
+
     category = (
         db.query(Category)
         .filter(
@@ -115,7 +139,10 @@ def update_product(
             "Category not found."
         )
 
+    # --------------------------------------------------
     # Check duplicate SKU
+    # --------------------------------------------------
+
     if product.sku:
         duplicate = (
             db.query(Product)
@@ -131,6 +158,17 @@ def update_product(
                 "SKU already exists."
             )
 
+    # --------------------------------------------------
+    # Update product information
+    # --------------------------------------------------
+    #
+    # IMPORTANT:
+    # stock_quantity is intentionally NOT modified.
+    #
+    # Stock changes must go through the inventory /
+    # stock transaction workflow.
+    # --------------------------------------------------
+
     existing.category_id = product.category_id
     existing.product_name = product.product_name
     existing.sku = product.sku
@@ -139,7 +177,6 @@ def update_product(
     existing.color = product.color
     existing.purchase_price = product.purchase_price
     existing.selling_price = product.selling_price
-    existing.stock_quantity = product.stock_quantity
 
     try:
         db.commit()
@@ -147,6 +184,7 @@ def update_product(
 
     except IntegrityError:
         db.rollback()
+
         raise ValueError(
             "Unable to update product because of a database constraint."
         )

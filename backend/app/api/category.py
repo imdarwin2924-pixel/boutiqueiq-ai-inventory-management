@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.core.auth import get_current_user
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
 from app.models.user import User
 
 from app.schemas.category_schema import (
@@ -18,6 +23,7 @@ from app.services.category_service import (
     delete_category,
 )
 
+
 router = APIRouter()
 
 
@@ -25,10 +31,15 @@ router = APIRouter()
 def create_new_category(
     category: CategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
-        return create_category(db, category)
+        return create_category(
+            db,
+            category,
+        )
 
     except ValueError as e:
         message = str(e)
@@ -59,7 +70,10 @@ def get_category(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    category = get_category_by_id(db, category_id)
+    category = get_category_by_id(
+        db,
+        category_id,
+    )
 
     if not category:
         raise HTTPException(
@@ -75,7 +89,9 @@ def update_existing_category(
     category_id: int,
     category: CategoryUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return update_category(
@@ -109,7 +125,9 @@ def update_existing_category(
 def remove_category(
     category_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return delete_category(

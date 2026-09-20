@@ -18,6 +18,8 @@ import type {
   SaleCreate,
 } from "../services/salesService";
 
+import { useAuth } from "../hooks/useAuth";
+
 interface ApiErrorResponse {
   detail?: string;
 }
@@ -51,11 +53,21 @@ const getInitialFormData = (): SaleFormData => ({
 });
 
 function Sales() {
+  const {
+    isAdmin,
+    isManager,
+  } = useAuth();
+
+  const canManageSales =
+    isAdmin || isManager;
+
   const [sales, setSales] = useState<Sale[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingSaleId, setDeletingSaleId] =
+    useState<number | null>(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -67,7 +79,42 @@ function Sales() {
     useState<number | null>(null);
 
   const [formData, setFormData] =
-    useState<SaleFormData>(getInitialFormData);
+    useState<SaleFormData>(
+      getInitialFormData
+    );
+
+  const getErrorMessage = (
+    err: unknown,
+    fallback: string
+  ): string => {
+    if (axios.isAxiosError<ApiErrorResponse>(err)) {
+      if (err.response?.status === 401) {
+        return "Your session has expired. Please log in again.";
+      }
+
+      if (err.response?.status === 403) {
+        return "You do not have permission to perform this action.";
+      }
+
+      if (err.response?.status === 404) {
+        return "Sale not found.";
+      }
+
+      if (err.response?.status === 409) {
+        return (
+          err.response.data?.detail ||
+          "This sale conflicts with an existing record."
+        );
+      }
+
+      return (
+        err.response?.data?.detail ||
+        fallback
+      );
+    }
+
+    return fallback;
+  };
 
   /*
    * Load sales.
@@ -81,16 +128,17 @@ function Sales() {
 
       setSales(data);
     } catch (err) {
-      console.error("Failed to load sales:", err);
+      console.error(
+        "Failed to load sales:",
+        err
+      );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        setError(
-          err.response?.data?.detail ||
-            "Failed to load sales."
-        );
-      } else {
-        setError("Failed to load sales.");
-      }
+      setError(
+        getErrorMessage(
+          err,
+          "Failed to load sales."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -107,11 +155,13 @@ function Sales() {
         setLoading(true);
         setError("");
 
-        const [salesData, customersData] =
-          await Promise.all([
-            getSales(),
-            getCustomers(),
-          ]);
+        const [
+          salesData,
+          customersData,
+        ] = await Promise.all([
+          getSales(),
+          getCustomers(),
+        ]);
 
         if (!mounted) {
           return;
@@ -129,14 +179,12 @@ function Sales() {
           return;
         }
 
-        if (axios.isAxiosError<ApiErrorResponse>(err)) {
-          setError(
-            err.response?.data?.detail ||
-              "Failed to load sales data."
-          );
-        } else {
-          setError("Failed to load sales data.");
-        }
+        setError(
+          getErrorMessage(
+            err,
+            "Failed to load sales data."
+          )
+        );
       } finally {
         if (mounted) {
           setLoading(false);
@@ -159,7 +207,10 @@ function Sales() {
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = event.target;
+    const {
+      name,
+      value,
+    } = event.target;
 
     setFormData((previous) => ({
       ...previous,
@@ -178,6 +229,8 @@ function Sales() {
 
   /*
    * Open create form.
+   *
+   * Staff are allowed to create sales.
    */
   const handleAddSale = () => {
     setError("");
@@ -190,12 +243,23 @@ function Sales() {
 
   /*
    * Open edit form.
+   *
+   * Admin and Manager only.
    */
   const handleEditSale = (sale: Sale) => {
+    if (!canManageSales) {
+      setError(
+        "You do not have permission to edit sales."
+      );
+      return;
+    }
+
     setError("");
     setSuccess("");
 
-    const date = new Date(sale.sale_date);
+    const date = new Date(
+      sale.sale_date
+    );
 
     const localDate = new Date(
       date.getTime() -
@@ -203,17 +267,26 @@ function Sales() {
     );
 
     setFormData({
-      customer_id: String(sale.customer_id),
-      invoice_number: sale.invoice_number,
+      customer_id: String(
+        sale.customer_id
+      ),
+      invoice_number:
+        sale.invoice_number,
       sale_date: localDate
         .toISOString()
         .slice(0, 16),
-      total_amount: String(sale.total_amount),
+      total_amount: String(
+        sale.total_amount
+      ),
       payment_method:
-        sale.payment_method || "Cash",
+        sale.payment_method ||
+        "Cash",
     });
 
-    setEditingSaleId(sale.sale_id);
+    setEditingSaleId(
+      sale.sale_id
+    );
+
     setShowForm(true);
   };
 
@@ -222,17 +295,23 @@ function Sales() {
    */
   const validateForm = (): boolean => {
     if (!formData.customer_id) {
-      setError("Please select a customer.");
+      setError(
+        "Please select a customer."
+      );
       return false;
     }
 
     if (!formData.invoice_number.trim()) {
-      setError("Invoice number is required.");
+      setError(
+        "Invoice number is required."
+      );
       return false;
     }
 
     if (!formData.sale_date) {
-      setError("Sale date is required.");
+      setError(
+        "Sale date is required."
+      );
       return false;
     }
 
@@ -240,8 +319,14 @@ function Sales() {
       formData.sale_date
     );
 
-    if (Number.isNaN(saleDate.getTime())) {
-      setError("Please enter a valid sale date.");
+    if (
+      Number.isNaN(
+        saleDate.getTime()
+      )
+    ) {
+      setError(
+        "Please enter a valid sale date."
+      );
       return false;
     }
 
@@ -250,7 +335,8 @@ function Sales() {
     );
 
     if (
-      formData.total_amount.trim() === "" ||
+      formData.total_amount.trim() ===
+        "" ||
       !Number.isFinite(totalAmount)
     ) {
       setError(
@@ -266,7 +352,9 @@ function Sales() {
       return false;
     }
 
-    if (!formData.payment_method.trim()) {
+    if (
+      !formData.payment_method.trim()
+    ) {
       setError(
         "Payment method is required."
       );
@@ -297,14 +385,16 @@ function Sales() {
     /*
      * Frontend duplicate invoice protection.
      */
-    const duplicateInvoice = sales.some(
-      (sale) =>
-        sale.invoice_number
-          .trim()
-          .toLowerCase() ===
-          invoiceNumber.toLowerCase() &&
-        sale.sale_id !== editingSaleId
-    );
+    const duplicateInvoice =
+      sales.some(
+        (sale) =>
+          sale.invoice_number
+            .trim()
+            .toLowerCase() ===
+            invoiceNumber.toLowerCase() &&
+          sale.sale_id !==
+            editingSaleId
+      );
 
     if (duplicateInvoice) {
       setError(
@@ -317,7 +407,8 @@ function Sales() {
       customer_id: Number(
         formData.customer_id
       ),
-      invoice_number: invoiceNumber,
+      invoice_number:
+        invoiceNumber,
       sale_date: new Date(
         formData.sale_date
       ).toISOString(),
@@ -332,6 +423,13 @@ function Sales() {
       setSaving(true);
 
       if (editingSaleId !== null) {
+        if (!canManageSales) {
+          setError(
+            "You do not have permission to update sales."
+          );
+          return;
+        }
+
         await updateSale(
           editingSaleId,
           payload
@@ -341,6 +439,10 @@ function Sales() {
           "Sale updated successfully."
         );
       } else {
+        /*
+         * Admin, Manager and Staff
+         * can create sales.
+         */
         await createSale(payload);
 
         setSuccess(
@@ -357,16 +459,12 @@ function Sales() {
         err
       );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        setError(
-          err.response?.data?.detail ||
-            "Failed to save sale."
-        );
-      } else {
-        setError(
+      setError(
+        getErrorMessage(
+          err,
           "Failed to save sale."
-        );
-      }
+        )
+      );
     } finally {
       setSaving(false);
     }
@@ -374,13 +472,23 @@ function Sales() {
 
   /*
    * Delete Sale.
+   *
+   * Admin and Manager only.
    */
   const handleDeleteSale = async (
     saleId: number
   ) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this sale?"
-    );
+    if (!canManageSales) {
+      setError(
+        "You do not have permission to delete sales."
+      );
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this sale?"
+      );
 
     if (!confirmed) {
       return;
@@ -388,6 +496,7 @@ function Sales() {
 
     setError("");
     setSuccess("");
+    setDeletingSaleId(saleId);
 
     try {
       await deleteSale(saleId);
@@ -403,16 +512,14 @@ function Sales() {
         err
       );
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
-        setError(
-          err.response?.data?.detail ||
-            "Failed to delete sale."
-        );
-      } else {
-        setError(
+      setError(
+        getErrorMessage(
+          err,
           "Failed to delete sale."
-        );
-      }
+        )
+      );
+    } finally {
+      setDeletingSaleId(null);
     }
   };
 
@@ -422,10 +529,12 @@ function Sales() {
   const getCustomerName = (
     customerId: number
   ): string => {
-    const customer = customers.find(
-      (item) =>
-        item.customer_id === customerId
-    );
+    const customer =
+      customers.find(
+        (item) =>
+          item.customer_id ===
+          customerId
+      );
 
     return customer
       ? customer.customer_name
@@ -439,8 +548,8 @@ function Sales() {
     .trim()
     .toLowerCase();
 
-  const filteredSales = sales.filter(
-    (sale) => {
+  const filteredSales =
+    sales.filter((sale) => {
       if (!searchValue) {
         return true;
       }
@@ -458,17 +567,20 @@ function Sales() {
           .toLowerCase()
           .includes(searchValue)
       );
-    }
-  );
+    });
 
   /*
    * Summary.
    */
-  const totalSalesAmount = sales.reduce(
-    (total, sale) =>
-      total + Number(sale.total_amount),
-    0
-  );
+  const totalSalesAmount =
+    sales.reduce(
+      (total, sale) =>
+        total +
+        Number(
+          sale.total_amount
+        ),
+      0
+    );
 
   return (
     <div className="products-page">
@@ -482,11 +594,15 @@ function Sales() {
           </p>
         </div>
 
+        {/* All authenticated roles can create sales */}
         <button
           type="button"
           className="primary-button"
           onClick={handleAddSale}
-          disabled={saving}
+          disabled={
+            saving ||
+            deletingSaleId !== null
+          }
         >
           + Record Sale
         </button>
@@ -524,7 +640,10 @@ function Sales() {
           </span>
 
           <strong className="dashboard-card-value">
-            ₹{totalSalesAmount.toFixed(2)}
+            ₹
+            {totalSalesAmount.toFixed(
+              2
+            )}
           </strong>
         </div>
 
@@ -570,22 +689,34 @@ function Sales() {
                 <select
                   id="customer_id"
                   name="customer_id"
-                  value={formData.customer_id}
-                  onChange={handleInputChange}
+                  value={
+                    formData.customer_id
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   disabled={saving}
                 >
                   <option value="">
                     Select customer
                   </option>
 
-                  {customers.map((customer) => (
-                    <option
-                      key={customer.customer_id}
-                      value={customer.customer_id}
-                    >
-                      {customer.customer_name}
-                    </option>
-                  ))}
+                  {customers.map(
+                    (customer) => (
+                      <option
+                        key={
+                          customer.customer_id
+                        }
+                        value={
+                          customer.customer_id
+                        }
+                      >
+                        {
+                          customer.customer_name
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -599,8 +730,12 @@ function Sales() {
                   id="invoice_number"
                   name="invoice_number"
                   type="text"
-                  value={formData.invoice_number}
-                  onChange={handleInputChange}
+                  value={
+                    formData.invoice_number
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   placeholder="INV-001"
                   disabled={saving}
                 />
@@ -616,8 +751,12 @@ function Sales() {
                   id="sale_date"
                   name="sale_date"
                   type="datetime-local"
-                  value={formData.sale_date}
-                  onChange={handleInputChange}
+                  value={
+                    formData.sale_date
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   disabled={saving}
                 />
               </div>
@@ -634,8 +773,12 @@ function Sales() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={formData.total_amount}
-                  onChange={handleInputChange}
+                  value={
+                    formData.total_amount
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   placeholder="0.00"
                   disabled={saving}
                 />
@@ -650,8 +793,12 @@ function Sales() {
                 <select
                   id="payment_method"
                   name="payment_method"
-                  value={formData.payment_method}
-                  onChange={handleInputChange}
+                  value={
+                    formData.payment_method
+                  }
+                  onChange={
+                    handleInputChange
+                  }
                   disabled={saving}
                 >
                   <option value="Cash">
@@ -711,7 +858,9 @@ function Sales() {
             type="text"
             value={search}
             onChange={(event) =>
-              setSearch(event.target.value)
+              setSearch(
+                event.target.value
+              )
             }
             placeholder="Search invoices, customers, payment..."
           />
@@ -724,7 +873,8 @@ function Sales() {
           <div className="table-empty">
             Loading sales...
           </div>
-        ) : filteredSales.length === 0 ? (
+        ) : filteredSales.length ===
+          0 ? (
           <div className="table-empty">
             {search
               ? "No sales match your search."
@@ -740,75 +890,105 @@ function Sales() {
                 <th>Date</th>
                 <th>Total</th>
                 <th>Payment</th>
-                <th>Actions</th>
+
+                {canManageSales && (
+                  <th>Actions</th>
+                )}
               </tr>
             </thead>
 
             <tbody>
-              {filteredSales.map((sale) => (
-                <tr key={sale.sale_id}>
-                  <td>
-                    #{sale.sale_id}
-                  </td>
+              {filteredSales.map(
+                (sale) => (
+                  <tr
+                    key={
+                      sale.sale_id
+                    }
+                  >
+                    <td>
+                      #{sale.sale_id}
+                    </td>
 
-                  <td>
-                    <strong>
-                      {sale.invoice_number}
-                    </strong>
-                  </td>
-
-                  <td>
-                    {getCustomerName(
-                      sale.customer_id
-                    )}
-                  </td>
-
-                  <td>
-                    {new Date(
-                      sale.sale_date
-                    ).toLocaleString()}
-                  </td>
-
-                  <td>
-                    ₹
-                    {Number(
-                      sale.total_amount
-                    ).toFixed(2)}
-                  </td>
-
-                  <td>
-                    {sale.payment_method}
-                  </td>
-
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() =>
-                          handleEditSale(sale)
+                    <td>
+                      <strong>
+                        {
+                          sale.invoice_number
                         }
-                        disabled={saving}
-                      >
-                        Edit
-                      </button>
+                      </strong>
+                    </td>
 
-                      <button
-                        type="button"
-                        className="delete-button"
-                        onClick={() =>
-                          void handleDeleteSale(
+                    <td>
+                      {getCustomerName(
+                        sale.customer_id
+                      )}
+                    </td>
+
+                    <td>
+                      {new Date(
+                        sale.sale_date
+                      ).toLocaleString()}
+                    </td>
+
+                    <td>
+                      ₹
+                      {Number(
+                        sale.total_amount
+                      ).toFixed(
+                        2
+                      )}
+                    </td>
+
+                    <td>
+                      {
+                        sale.payment_method
+                      }
+                    </td>
+
+                    {canManageSales && (
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() =>
+                              handleEditSale(
+                                sale
+                              )
+                            }
+                            disabled={
+                              saving ||
+                              deletingSaleId !==
+                                null
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() =>
+                              void handleDeleteSale(
+                                sale.sale_id
+                              )
+                            }
+                            disabled={
+                              saving ||
+                              deletingSaleId !==
+                                null
+                            }
+                          >
+                            {deletingSaleId ===
                             sale.sale_id
-                          )
-                        }
-                        disabled={saving}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         )}

@@ -32,9 +32,23 @@ import type {
   PurchaseItemCreate,
 } from "../services/purchaseItemService";
 
+import { useAuth } from "../hooks/useAuth";
+
+/**
+ * --------------------------------------------------
+ * API ERROR
+ * --------------------------------------------------
+ */
+
 interface ApiErrorResponse {
   detail?: string;
 }
+
+/**
+ * --------------------------------------------------
+ * PURCHASE ITEM FORM
+ * --------------------------------------------------
+ */
 
 interface PurchaseItemForm {
   product_id: string;
@@ -43,12 +57,24 @@ interface PurchaseItemForm {
   purchase_item_id?: number;
 }
 
+/**
+ * --------------------------------------------------
+ * PURCHASE ORDER FORM
+ * --------------------------------------------------
+ */
+
 interface PurchaseFormData {
   supplier_id: string;
   order_number: string;
   order_date: string;
   status: string;
 }
+
+/**
+ * --------------------------------------------------
+ * DATE HELPERS
+ * --------------------------------------------------
+ */
 
 const getCurrentDateTime = (): string => {
   const now = new Date();
@@ -68,31 +94,70 @@ const createEmptyItem = (): PurchaseItemForm => ({
   unit_price: "",
 });
 
-const createInitialOrderForm = (): PurchaseFormData => ({
-  supplier_id: "",
-  order_number: "",
-  order_date: getCurrentDateTime(),
-  status: "Pending",
-});
+const createInitialOrderForm =
+  (): PurchaseFormData => ({
+    supplier_id: "",
+    order_number: "",
+    order_date: getCurrentDateTime(),
+    status: "Pending",
+  });
+
+/**
+ * --------------------------------------------------
+ * COMPONENT
+ * --------------------------------------------------
+ */
 
 function Purchases() {
-  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  /**
+   * --------------------------------------------------
+   * AUTH / RBAC
+   * --------------------------------------------------
+   */
 
-  const [items, setItems] = useState<PurchaseItem[]>([]);
+  const { isAdmin, isManager } = useAuth();
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const canManagePurchases =
+    isAdmin || isManager;
 
-  const [products, setProducts] = useState<Product[]>([]);
+  /**
+   * --------------------------------------------------
+   * STATE
+   * --------------------------------------------------
+   */
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [orders, setOrders] =
+    useState<PurchaseOrder[]>([]);
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [items, setItems] =
+    useState<PurchaseItem[]>([]);
 
-  const [search, setSearch] = useState("");
+  const [suppliers, setSuppliers] =
+    useState<Supplier[]>([]);
 
-  const [showForm, setShowForm] = useState(false);
+  const [products, setProducts] =
+    useState<Product[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [deletingOrderId, setDeletingOrderId] =
+    useState<number | null>(null);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
+
+  const [search, setSearch] =
+    useState("");
+
+  const [showForm, setShowForm] =
+    useState(false);
 
   const [editingOrderId, setEditingOrderId] =
     useState<number | null>(null);
@@ -102,9 +167,68 @@ function Purchases() {
       createInitialOrderForm()
     );
 
-  const [itemForms, setItemForms] = useState<
-    PurchaseItemForm[]
-  >([createEmptyItem()]);
+  const [itemForms, setItemForms] =
+    useState<PurchaseItemForm[]>([
+      createEmptyItem(),
+    ]);
+
+  /**
+   * --------------------------------------------------
+   * ERROR MESSAGE HELPER
+   * --------------------------------------------------
+   */
+
+  const getErrorMessage = (
+    err: unknown,
+    fallback: string
+  ): string => {
+    if (
+      axios.isAxiosError<ApiErrorResponse>(
+        err
+      )
+    ) {
+      const backendMessage =
+        err.response?.data?.detail;
+
+      if (
+        typeof backendMessage === "string"
+      ) {
+        return backendMessage;
+      }
+
+      if (
+        err.response?.status === 401
+      ) {
+        return "Your session has expired. Please log in again.";
+      }
+
+      if (
+        err.response?.status === 403
+      ) {
+        return "You do not have permission to perform this action.";
+      }
+
+      if (
+        err.response?.status === 404
+      ) {
+        return "Purchase order was not found.";
+      }
+
+      if (
+        err.response?.status === 409
+      ) {
+        return "This purchase order conflicts with an existing record.";
+      }
+    }
+
+    return fallback;
+  };
+
+  /**
+   * --------------------------------------------------
+   * INITIAL LOAD
+   * --------------------------------------------------
+   */
 
   useEffect(() => {
     let mounted = true;
@@ -140,18 +264,12 @@ function Purchases() {
           err
         );
 
-        if (!mounted) {
-          return;
-        }
-
-        if (axios.isAxiosError<ApiErrorResponse>(err)) {
+        if (mounted) {
           setError(
-            err.response?.data?.detail ||
+            getErrorMessage(
+              err,
               "Failed to load purchase data."
-          );
-        } else {
-          setError(
-            "Failed to load purchase data."
+            )
           );
         }
       } finally {
@@ -168,53 +286,96 @@ function Purchases() {
     };
   }, []);
 
-  const refreshPurchaseData = async () => {
-    const [
-      ordersData,
-      itemsData,
-    ] = await Promise.all([
-      getPurchaseOrders(),
-      getPurchaseItems(),
-    ]);
+  /**
+   * --------------------------------------------------
+   * REFRESH PURCHASE DATA
+   * --------------------------------------------------
+   */
 
-    setOrders(ordersData);
-    setItems(itemsData);
-  };
+  const refreshPurchaseData =
+    async () => {
+      const [
+        ordersData,
+        itemsData,
+      ] = await Promise.all([
+        getPurchaseOrders(),
+        getPurchaseItems(),
+      ]);
+
+      setOrders(ordersData);
+      setItems(itemsData);
+    };
+
+  /**
+   * --------------------------------------------------
+   * SUPPLIER NAME
+   * --------------------------------------------------
+   */
 
   const getSupplierName = (
     supplierId: number
   ): string => {
-    const supplier = suppliers.find(
-      (item) =>
-        item.supplier_id === supplierId
-    );
+    const supplier =
+      suppliers.find(
+        (item) =>
+          item.supplier_id ===
+          supplierId
+      );
 
     return supplier
       ? supplier.supplier_name
       : `Supplier #${supplierId}`;
   };
 
+  /**
+   * --------------------------------------------------
+   * GET ORDER ITEMS
+   * --------------------------------------------------
+   */
+
   const getOrderItems = (
     orderId: number
   ): PurchaseItem[] => {
     return items.filter(
       (item) =>
-        item.purchase_order_id === orderId
+        item.purchase_order_id ===
+        orderId
     );
   };
+
+  /**
+   * --------------------------------------------------
+   * ORDER INPUT
+   * --------------------------------------------------
+   */
 
   const handleOrderInputChange = (
     event: ChangeEvent<
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = event.target;
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setOrderForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setOrderForm(
+      (previous) => ({
+        ...previous,
+        [name]: value,
+      })
+    );
+
+    if (error) {
+      setError("");
+    }
   };
+
+  /**
+   * --------------------------------------------------
+   * ITEM INPUT
+   * --------------------------------------------------
+   */
 
   const handleItemChange = (
     index: number,
@@ -222,51 +383,108 @@ function Purchases() {
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = event.target;
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setItemForms((previous) =>
-      previous.map((item, itemIndex) =>
-        itemIndex === index
-          ? {
-              ...item,
-              [name]: value,
-            }
-          : item
-      )
+    setItemForms(
+      (previous) =>
+        previous.map(
+          (item, itemIndex) =>
+            itemIndex === index
+              ? {
+                  ...item,
+                  [name]: value,
+                }
+              : item
+        )
+    );
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  /**
+   * --------------------------------------------------
+   * ADD ITEM ROW
+   * --------------------------------------------------
+   */
+
+  const addItemRow = () => {
+    if (!canManagePurchases) {
+      return;
+    }
+
+    setItemForms(
+      (previous) => [
+        ...previous,
+        createEmptyItem(),
+      ]
     );
   };
 
-  const addItemRow = () => {
-    setItemForms((previous) => [
-      ...previous,
-      createEmptyItem(),
-    ]);
-  };
+  /**
+   * --------------------------------------------------
+   * REMOVE ITEM ROW
+   * --------------------------------------------------
+   */
 
-  const removeItemRow = (index: number) => {
-    setItemForms((previous) => {
-      if (previous.length === 1) {
-        return previous;
+  const removeItemRow = (
+    index: number
+  ) => {
+    if (!canManagePurchases) {
+      return;
+    }
+
+    setItemForms(
+      (previous) => {
+        if (previous.length === 1) {
+          return previous;
+        }
+
+        return previous.filter(
+          (_, itemIndex) =>
+            itemIndex !== index
+        );
       }
-
-      return previous.filter(
-        (_, itemIndex) =>
-          itemIndex !== index
-      );
-    });
+    );
   };
+
+  /**
+   * --------------------------------------------------
+   * RESET FORM
+   * --------------------------------------------------
+   */
 
   const resetForm = () => {
     setOrderForm(
       createInitialOrderForm()
     );
 
-    setItemForms([createEmptyItem()]);
+    setItemForms([
+      createEmptyItem(),
+    ]);
+
     setEditingOrderId(null);
     setShowForm(false);
   };
 
+  /**
+   * --------------------------------------------------
+   * ADD PURCHASE
+   * --------------------------------------------------
+   */
+
   const handleAddPurchase = () => {
+    if (!canManagePurchases) {
+      setError(
+        "You do not have permission to create purchase orders."
+      );
+      return;
+    }
+
     setError("");
     setSuccess("");
 
@@ -274,35 +492,58 @@ function Purchases() {
       createInitialOrderForm()
     );
 
-    setItemForms([createEmptyItem()]);
+    setItemForms([
+      createEmptyItem(),
+    ]);
+
     setEditingOrderId(null);
     setShowForm(true);
   };
 
+  /**
+   * --------------------------------------------------
+   * EDIT PURCHASE
+   * --------------------------------------------------
+   */
+
   const handleEditPurchase = (
     order: PurchaseOrder
   ) => {
+    if (!canManagePurchases) {
+      setError(
+        "You do not have permission to edit purchase orders."
+      );
+      return;
+    }
+
     setError("");
     setSuccess("");
 
-    const orderDate = new Date(
-      order.order_date
-    );
+    const orderDate =
+      new Date(order.order_date);
 
-    const localDate = new Date(
-      orderDate.getTime() -
-        orderDate.getTimezoneOffset() * 60 * 1000
-    );
+    const localDate =
+      new Date(
+        orderDate.getTime() -
+          orderDate.getTimezoneOffset() *
+            60 *
+            1000
+      );
 
     setOrderForm({
-      supplier_id: String(
-        order.supplier_id
-      ),
-      order_number: order.order_number,
-      order_date: localDate
-        .toISOString()
-        .slice(0, 16),
-      status: order.status,
+      supplier_id:
+        String(order.supplier_id),
+
+      order_number:
+        order.order_number,
+
+      order_date:
+        localDate
+          .toISOString()
+          .slice(0, 16),
+
+      status:
+        order.status,
     });
 
     const existingItems =
@@ -310,24 +551,36 @@ function Purchases() {
         order.purchase_order_id
       );
 
-    if (existingItems.length > 0) {
+    if (
+      existingItems.length > 0
+    ) {
       setItemForms(
-        existingItems.map((item) => ({
-          purchase_item_id:
-            item.purchase_item_id,
-          product_id: String(
-            item.product_id
-          ),
-          quantity: String(
-            item.quantity
-          ),
-          unit_price: String(
-            item.unit_price
-          ),
-        }))
+        existingItems.map(
+          (item) => ({
+            purchase_item_id:
+              item.purchase_item_id,
+
+            product_id:
+              String(
+                item.product_id
+              ),
+
+            quantity:
+              String(
+                item.quantity
+              ),
+
+            unit_price:
+              String(
+                item.unit_price
+              ),
+          })
+        )
       );
     } else {
-      setItemForms([createEmptyItem()]);
+      setItemForms([
+        createEmptyItem(),
+      ]);
     }
 
     setEditingOrderId(
@@ -337,16 +590,20 @@ function Purchases() {
     setShowForm(true);
   };
 
+  /**
+   * --------------------------------------------------
+   * CALCULATE SUBTOTAL
+   * --------------------------------------------------
+   */
+
   const calculateItemSubtotal = (
     item: PurchaseItemForm
   ): number => {
-    const quantity = Number(
-      item.quantity
-    );
+    const quantity =
+      Number(item.quantity);
 
-    const unitPrice = Number(
-      item.unit_price
-    );
+    const unitPrice =
+      Number(item.unit_price);
 
     if (
       Number.isNaN(quantity) ||
@@ -355,17 +612,35 @@ function Purchases() {
       return 0;
     }
 
-    return quantity * unitPrice;
+    return (
+      quantity * unitPrice
+    );
   };
 
-  const formTotal = useMemo(() => {
-    return itemForms.reduce(
-      (total, item) =>
-        total +
-        calculateItemSubtotal(item),
-      0
-    );
-  }, [itemForms]);
+  /**
+   * --------------------------------------------------
+   * FORM TOTAL
+   * --------------------------------------------------
+   */
+
+  const formTotal = useMemo(
+    () =>
+      itemForms.reduce(
+        (total, item) =>
+          total +
+          calculateItemSubtotal(
+            item
+          ),
+        0
+      ),
+    [itemForms]
+  );
+
+  /**
+   * --------------------------------------------------
+   * VALIDATE FORM
+   * --------------------------------------------------
+   */
 
   const validateForm = (): boolean => {
     if (!orderForm.supplier_id) {
@@ -375,7 +650,9 @@ function Purchases() {
       return false;
     }
 
-    if (!orderForm.order_number.trim()) {
+    if (
+      !orderForm.order_number.trim()
+    ) {
       setError(
         "Order number is required."
       );
@@ -408,7 +685,8 @@ function Purchases() {
       index < itemForms.length;
       index += 1
     ) {
-      const item = itemForms[index];
+      const item =
+        itemForms[index];
 
       if (!item.product_id) {
         setError(
@@ -419,13 +697,11 @@ function Purchases() {
         return false;
       }
 
-      const quantity = Number(
-        item.quantity
-      );
+      const quantity =
+        Number(item.quantity);
 
-      const unitPrice = Number(
-        item.unit_price
-      );
+      const unitPrice =
+        Number(item.unit_price);
 
       if (
         !item.quantity ||
@@ -457,284 +733,382 @@ function Purchases() {
     return true;
   };
 
-  const handleSavePurchase = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
+  /**
+   * --------------------------------------------------
+   * SAVE PURCHASE
+   * --------------------------------------------------
+   */
 
-    setError("");
-    setSuccess("");
+  const handleSavePurchase =
+    async (
+      event: FormEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+      if (!canManagePurchases) {
+        setError(
+          "You do not have permission to manage purchase orders."
+        );
+        return;
+      }
 
-    const orderNumber =
-      orderForm.order_number.trim();
+      if (saving) {
+        return;
+      }
 
-    const duplicateOrder =
-      orders.some(
-        (order) =>
-          order.order_number
-            .trim()
-            .toLowerCase() ===
-            orderNumber.toLowerCase() &&
-          order.purchase_order_id !==
-            editingOrderId
-      );
+      setError("");
+      setSuccess("");
 
-    if (duplicateOrder) {
-      setError(
-        "A purchase order with this order number already exists."
-      );
-      return;
-    }
+      if (!validateForm()) {
+        return;
+      }
 
-    try {
-      setSaving(true);
+      const orderNumber =
+        orderForm.order_number.trim();
 
-      const orderPayload: PurchaseOrderCreate = {
-        supplier_id: Number(
-          orderForm.supplier_id
-        ),
-        order_number: orderNumber,
-        order_date: new Date(
-          orderForm.order_date
-        ).toISOString(),
-        total_amount: formTotal,
-        status:
-          orderForm.status.trim(),
-      };
+      /**
+       * Duplicate order number check
+       */
 
-      let purchaseOrderId: number;
+      const duplicateOrder =
+        orders.some(
+          (order) =>
+            order.order_number
+              .trim()
+              .toLowerCase() ===
+              orderNumber.toLowerCase() &&
+            order.purchase_order_id !==
+              editingOrderId
+        );
 
-      if (editingOrderId !== null) {
-        const updatedOrder =
-          await updatePurchaseOrder(
-            editingOrderId,
-            orderPayload
-          );
+      if (duplicateOrder) {
+        setError(
+          "A purchase order with this order number already exists."
+        );
+        return;
+      }
 
-        purchaseOrderId =
-          updatedOrder.purchase_order_id;
+      try {
+        setSaving(true);
 
-        const existingItems =
-          getOrderItems(
-            editingOrderId
-          );
+        const orderPayload: PurchaseOrderCreate =
+          {
+            supplier_id:
+              Number(
+                orderForm.supplier_id
+              ),
 
-        const existingItemIds =
-          new Set(
-            itemForms
-              .filter(
-                (item) =>
-                  item.purchase_item_id !==
-                  undefined
-              )
-              .map(
-                (item) =>
-                  item.purchase_item_id
-              )
-          );
+            order_number:
+              orderNumber,
 
-        /*
-         * Delete old items that were removed
-         * from the edit form.
+            order_date:
+              new Date(
+                orderForm.order_date
+              ).toISOString(),
+
+            total_amount:
+              formTotal,
+
+            status:
+              orderForm.status.trim(),
+          };
+
+        let purchaseOrderId: number;
+
+        /**
+         * --------------------------------------------------
+         * UPDATE EXISTING PURCHASE
+         * --------------------------------------------------
          */
-        for (
-          const existingItem of existingItems
+
+        if (
+          editingOrderId !== null
         ) {
-          if (
-            !existingItemIds.has(
-              existingItem.purchase_item_id
-            )
-          ) {
-            await deletePurchaseItem(
-              existingItem.purchase_item_id
+          const updatedOrder =
+            await updatePurchaseOrder(
+              editingOrderId,
+              orderPayload
             );
+
+          purchaseOrderId =
+            updatedOrder.purchase_order_id;
+
+          const existingItems =
+            getOrderItems(
+              editingOrderId
+            );
+
+          const existingItemIds =
+            new Set(
+              itemForms
+                .filter(
+                  (item) =>
+                    item.purchase_item_id !==
+                    undefined
+                )
+                .map(
+                  (item) =>
+                    item.purchase_item_id
+                )
+            );
+
+          /**
+           * Delete removed items.
+           */
+
+          for (
+            const existingItem of existingItems
+          ) {
+            if (
+              !existingItemIds.has(
+                existingItem.purchase_item_id
+              )
+            ) {
+              await deletePurchaseItem(
+                existingItem.purchase_item_id
+              );
+            }
           }
+
+          /**
+           * Update existing items /
+           * create new items.
+           */
+
+          for (
+            const item of itemForms
+          ) {
+            const quantity =
+              Number(
+                item.quantity
+              );
+
+            const unitPrice =
+              Number(
+                item.unit_price
+              );
+
+            const itemPayload:
+              PurchaseItemCreate =
+              {
+                purchase_order_id:
+                  purchaseOrderId,
+
+                product_id:
+                  Number(
+                    item.product_id
+                  ),
+
+                quantity,
+
+                unit_price:
+                  unitPrice,
+
+                subtotal:
+                  quantity *
+                  unitPrice,
+              };
+
+            if (
+              item.purchase_item_id !==
+              undefined
+            ) {
+              await updatePurchaseItem(
+                item.purchase_item_id,
+                itemPayload
+              );
+            } else {
+              await createPurchaseItem(
+                itemPayload
+              );
+            }
+          }
+
+          setSuccess(
+            "Purchase order updated successfully."
+          );
         }
 
-        /*
-         * Update existing items and create
-         * newly added items.
+        /**
+         * --------------------------------------------------
+         * CREATE NEW PURCHASE
+         * --------------------------------------------------
          */
-        for (
-          const item of itemForms
-        ) {
-          const quantity = Number(
-            item.quantity
-          );
 
-          const unitPrice = Number(
-            item.unit_price
-          );
-
-          const itemPayload: PurchaseItemCreate =
-            {
-              purchase_order_id:
-                purchaseOrderId,
-              product_id: Number(
-                item.product_id
-              ),
-              quantity,
-              unit_price: unitPrice,
-              subtotal:
-                quantity * unitPrice,
-            };
-
-          if (
-            item.purchase_item_id !==
-            undefined
-          ) {
-            await updatePurchaseItem(
-              item.purchase_item_id,
-              itemPayload
+        else {
+          const createdOrder =
+            await createPurchaseOrder(
+              orderPayload
             );
-          } else {
+
+          purchaseOrderId =
+            createdOrder.purchase_order_id;
+
+          /**
+           * Create purchase items.
+           */
+
+          for (
+            const item of itemForms
+          ) {
+            const quantity =
+              Number(
+                item.quantity
+              );
+
+            const unitPrice =
+              Number(
+                item.unit_price
+              );
+
+            const itemPayload:
+              PurchaseItemCreate =
+              {
+                purchase_order_id:
+                  purchaseOrderId,
+
+                product_id:
+                  Number(
+                    item.product_id
+                  ),
+
+                quantity,
+
+                unit_price:
+                  unitPrice,
+
+                subtotal:
+                  quantity *
+                  unitPrice,
+              };
+
             await createPurchaseItem(
               itemPayload
             );
           }
-        }
 
-        setSuccess(
-          "Purchase order updated successfully."
-        );
-      } else {
-        const createdOrder =
-          await createPurchaseOrder(
-            orderPayload
-          );
-
-        purchaseOrderId =
-          createdOrder.purchase_order_id;
-
-        /*
-         * Create all purchase items after
-         * the purchase order exists.
-         */
-        for (
-          const item of itemForms
-        ) {
-          const quantity = Number(
-            item.quantity
-          );
-
-          const unitPrice = Number(
-            item.unit_price
-          );
-
-          const itemPayload: PurchaseItemCreate =
-            {
-              purchase_order_id:
-                purchaseOrderId,
-              product_id: Number(
-                item.product_id
-              ),
-              quantity,
-              unit_price: unitPrice,
-              subtotal:
-                quantity * unitPrice,
-            };
-
-          await createPurchaseItem(
-            itemPayload
+          setSuccess(
+            "Purchase order created successfully."
           );
         }
 
-        setSuccess(
-          "Purchase order created successfully."
+        resetForm();
+
+        await refreshPurchaseData();
+      } catch (err) {
+        console.error(
+          "Failed to save purchase:",
+          err
         );
-      }
 
-      resetForm();
-
-      await refreshPurchaseData();
-    } catch (err) {
-      console.error(
-        "Failed to save purchase:",
-        err
-      );
-
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
         setError(
-          err.response?.data?.detail ||
+          getErrorMessage(
+            err,
             "Failed to save purchase."
+          )
         );
-      } else {
-        setError(
-          "Failed to save purchase."
-        );
+      } finally {
+        setSaving(false);
       }
-    } finally {
-      setSaving(false);
-    }
-  };
+    };
 
-  const handleDeletePurchase = async (
-    orderId: number
-  ) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this purchase order?"
-    );
+  /**
+   * --------------------------------------------------
+   * DELETE PURCHASE
+   * --------------------------------------------------
+   */
 
-    if (!confirmed) {
-      return;
-    }
+  const handleDeletePurchase =
+    async (
+      orderId: number
+    ) => {
+      if (!canManagePurchases) {
+        setError(
+          "You do not have permission to delete purchase orders."
+        );
+        return;
+      }
 
-    setError("");
-    setSuccess("");
-
-    try {
-      const orderItems =
-        getOrderItems(orderId);
-
-      /*
-       * Purchase items reference the purchase
-       * order, so delete the child records first.
-       */
-      for (
-        const item of orderItems
+      if (
+        deletingOrderId !== null
       ) {
-        await deletePurchaseItem(
-          item.purchase_item_id
-        );
+        return;
       }
 
-      await deletePurchaseOrder(
-        orderId
-      );
+      const confirmed =
+        window.confirm(
+          "Are you sure you want to delete this purchase order?"
+        );
 
-      setSuccess(
-        "Purchase order deleted successfully."
-      );
+      if (!confirmed) {
+        return;
+      }
 
-      await refreshPurchaseData();
-    } catch (err) {
-      console.error(
-        "Failed to delete purchase order:",
-        err
-      );
+      setError("");
+      setSuccess("");
 
-      if (axios.isAxiosError<ApiErrorResponse>(err)) {
+      try {
+        setDeletingOrderId(
+          orderId
+        );
+
+        const orderItems =
+          getOrderItems(orderId);
+
+        /**
+         * Delete child purchase items
+         * before deleting the order.
+         */
+
+        for (
+          const item of orderItems
+        ) {
+          await deletePurchaseItem(
+            item.purchase_item_id
+          );
+        }
+
+        await deletePurchaseOrder(
+          orderId
+        );
+
+        setSuccess(
+          "Purchase order deleted successfully."
+        );
+
+        await refreshPurchaseData();
+      } catch (err) {
+        console.error(
+          "Failed to delete purchase order:",
+          err
+        );
+
         setError(
-          err.response?.data?.detail ||
+          getErrorMessage(
+            err,
             "Failed to delete purchase order."
+          )
         );
-      } else {
-        setError(
-          "Failed to delete purchase order."
+      } finally {
+        setDeletingOrderId(
+          null
         );
       }
-    }
-  };
+    };
+
+  /**
+   * --------------------------------------------------
+   * FILTER
+   * --------------------------------------------------
+   */
+
+  const searchValue =
+    search
+      .trim()
+      .toLowerCase();
 
   const filteredOrders =
     orders.filter((order) => {
-      const searchValue =
-        search.trim().toLowerCase();
-
       if (!searchValue) {
         return true;
       }
@@ -754,34 +1128,61 @@ function Purchases() {
       );
     });
 
+  /**
+   * --------------------------------------------------
+   * SUMMARY
+   * --------------------------------------------------
+   */
+
   const totalPurchaseAmount =
     orders.reduce(
       (total, order) =>
         total +
-        Number(order.total_amount),
+        Number(
+          order.total_amount
+        ),
       0
     );
 
+  /**
+   * --------------------------------------------------
+   * UI
+   * --------------------------------------------------
+   */
+
   return (
     <div className="products-page">
+
+      {/* --------------------------------------------------
+          PAGE HEADER
+      -------------------------------------------------- */}
+
       <div className="page-header">
         <div>
           <h1>Purchases</h1>
 
           <p>
             Manage purchase orders and
-            purchase items
+            purchase items.
           </p>
         </div>
 
-        <button
-          type="button"
-          className="primary-button"
-          onClick={handleAddPurchase}
-        >
-          + Create Purchase
-        </button>
+        {canManagePurchases && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={
+              handleAddPurchase
+            }
+          >
+            + Create Purchase
+          </button>
+        )}
       </div>
+
+      {/* --------------------------------------------------
+          ERROR
+      -------------------------------------------------- */}
 
       {error && (
         <div className="dashboard-error">
@@ -789,13 +1190,22 @@ function Purchases() {
         </div>
       )}
 
+      {/* --------------------------------------------------
+          SUCCESS
+      -------------------------------------------------- */}
+
       {success && (
         <div className="success-message">
           {success}
         </div>
       )}
 
+      {/* --------------------------------------------------
+          SUMMARY
+      -------------------------------------------------- */}
+
       <div className="dashboard-cards">
+
         <div className="dashboard-card">
           <span className="dashboard-card-label">
             Purchase Orders
@@ -828,356 +1238,433 @@ function Purchases() {
             {items.length}
           </strong>
         </div>
+
       </div>
 
-      {showForm && (
-        <div className="product-form-container">
-          <div className="product-form-header">
-            <div>
-              <h2>
-                {editingOrderId !==
-                null
-                  ? "Edit Purchase Order"
-                  : "Create Purchase Order"}
-              </h2>
+      {/* --------------------------------------------------
+          PURCHASE FORM
+      -------------------------------------------------- */}
 
-              <p>
-                Enter supplier and
-                purchase details
-              </p>
-            </div>
-          </div>
-
-          <form
-            className="product-form"
-            onSubmit={
-              handleSavePurchase
-            }
-          >
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="supplier_id">
-                  Supplier
-                </label>
-
-                <select
-                  id="supplier_id"
-                  name="supplier_id"
-                  value={
-                    orderForm.supplier_id
-                  }
-                  onChange={
-                    handleOrderInputChange
-                  }
-                  disabled={saving}
-                >
-                  <option value="">
-                    Select supplier
-                  </option>
-
-                  {suppliers.map(
-                    (supplier) => (
-                      <option
-                        key={
-                          supplier.supplier_id
-                        }
-                        value={
-                          supplier.supplier_id
-                        }
-                      >
-                        {
-                          supplier.supplier_name
-                        }
-                      </option>
-                    )
-                  )}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="order_number">
-                  Order Number
-                </label>
-
-                <input
-                  id="order_number"
-                  name="order_number"
-                  type="text"
-                  value={
-                    orderForm.order_number
-                  }
-                  onChange={
-                    handleOrderInputChange
-                  }
-                  placeholder="PO-001"
-                  disabled={saving}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="order_date">
-                  Order Date
-                </label>
-
-                <input
-                  id="order_date"
-                  name="order_date"
-                  type="datetime-local"
-                  value={
-                    orderForm.order_date
-                  }
-                  onChange={
-                    handleOrderInputChange
-                  }
-                  disabled={saving}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="status">
-                  Status
-                </label>
-
-                <select
-                  id="status"
-                  name="status"
-                  value={
-                    orderForm.status
-                  }
-                  onChange={
-                    handleOrderInputChange
-                  }
-                  disabled={saving}
-                >
-                  <option value="Pending">
-                    Pending
-                  </option>
-
-                  <option value="Ordered">
-                    Ordered
-                  </option>
-
-                  <option value="Received">
-                    Received
-                  </option>
-
-                  <option value="Cancelled">
-                    Cancelled
-                  </option>
-                </select>
-              </div>
-            </div>
+      {showForm &&
+        canManagePurchases && (
+          <div className="product-form-container">
 
             <div className="product-form-header">
+
               <div>
                 <h2>
-                  Purchase Items
+                  {editingOrderId !==
+                  null
+                    ? "Edit Purchase Order"
+                    : "Create Purchase Order"}
                 </h2>
 
                 <p>
-                  Add products to this
-                  purchase order
+                  Enter supplier and
+                  purchase details.
                 </p>
               </div>
+
+              <button
+                type="button"
+                className="close-button"
+                onClick={
+                  resetForm
+                }
+                disabled={saving}
+              >
+                ×
+              </button>
+
             </div>
 
-            {itemForms.map(
-              (item, index) => (
-                <div
-                  className="form-grid"
-                  key={
-                    item.purchase_item_id ??
-                    `new-item-${index}`
-                  }
-                >
-                  <div className="form-group">
-                    <label
-                      htmlFor={`product-${index}`}
-                    >
-                      Product
-                    </label>
+            <form
+              className="product-form"
+              onSubmit={
+                handleSavePurchase
+              }
+            >
 
-                    <select
-                      id={`product-${index}`}
-                      name="product_id"
-                      value={
-                        item.product_id
-                      }
-                      onChange={(event) =>
-                        handleItemChange(
-                          index,
+              {/* --------------------------------------------------
+                  ORDER DETAILS
+              -------------------------------------------------- */}
+
+              <div className="form-grid">
+
+                <div className="form-group">
+                  <label htmlFor="supplier_id">
+                    Supplier
+                  </label>
+
+                  <select
+                    id="supplier_id"
+                    name="supplier_id"
+                    value={
+                      orderForm.supplier_id
+                    }
+                    onChange={
+                      handleOrderInputChange
+                    }
+                    disabled={saving}
+                  >
+                    <option value="">
+                      Select supplier
+                    </option>
+
+                    {suppliers.map(
+                      (supplier) => (
+                        <option
+                          key={
+                            supplier.supplier_id
+                          }
+                          value={
+                            supplier.supplier_id
+                          }
+                        >
+                          {
+                            supplier.supplier_name
+                          }
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="order_number">
+                    Order Number
+                  </label>
+
+                  <input
+                    id="order_number"
+                    name="order_number"
+                    type="text"
+                    value={
+                      orderForm.order_number
+                    }
+                    onChange={
+                      handleOrderInputChange
+                    }
+                    placeholder="PO-001"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="order_date">
+                    Order Date
+                  </label>
+
+                  <input
+                    id="order_date"
+                    name="order_date"
+                    type="datetime-local"
+                    value={
+                      orderForm.order_date
+                    }
+                    onChange={
+                      handleOrderInputChange
+                    }
+                    disabled={saving}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="status">
+                    Status
+                  </label>
+
+                  <select
+                    id="status"
+                    name="status"
+                    value={
+                      orderForm.status
+                    }
+                    onChange={
+                      handleOrderInputChange
+                    }
+                    disabled={saving}
+                  >
+                    <option value="Pending">
+                      Pending
+                    </option>
+
+                    <option value="Ordered">
+                      Ordered
+                    </option>
+
+                    <option value="Approved">
+                      Approved
+                    </option>
+
+                    <option value="Received">
+                      Received
+                    </option>
+
+                    <option value="Cancelled">
+                      Cancelled
+                    </option>
+                  </select>
+                </div>
+
+              </div>
+
+              {/* --------------------------------------------------
+                  PURCHASE ITEMS
+              -------------------------------------------------- */}
+
+              <div className="product-form-header">
+
+                <div>
+                  <h2>
+                    Purchase Items
+                  </h2>
+
+                  <p>
+                    Add products to this
+                    purchase order.
+                  </p>
+                </div>
+
+              </div>
+
+              {itemForms.map(
+                (item, index) => (
+                  <div
+                    className="form-grid"
+                    key={
+                      item.purchase_item_id ??
+                      `new-item-${index}`
+                    }
+                  >
+
+                    <div className="form-group">
+                      <label
+                        htmlFor={`product-${index}`}
+                      >
+                        Product
+                      </label>
+
+                      <select
+                        id={`product-${index}`}
+                        name="product_id"
+                        value={
+                          item.product_id
+                        }
+                        onChange={(
                           event
-                        )
-                      }
-                      disabled={saving}
-                    >
-                      <option value="">
-                        Select product
-                      </option>
-
-                      {products.map(
-                        (product) => (
-                          <option
-                            key={
-                              product.product_id
-                            }
-                            value={
-                              product.product_id
-                            }
-                          >
-                            {
-                              product.product_name
-                            }{" "}
-                            —{" "}
-                            {product.sku}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label
-                      htmlFor={`quantity-${index}`}
-                    >
-                      Quantity
-                    </label>
-
-                    <input
-                      id={`quantity-${index}`}
-                      name="quantity"
-                      type="number"
-                      min="1"
-                      value={
-                        item.quantity
-                      }
-                      onChange={(event) =>
-                        handleItemChange(
-                          index,
-                          event
-                        )
-                      }
-                      placeholder="Quantity"
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label
-                      htmlFor={`unit-price-${index}`}
-                    >
-                      Unit Price
-                    </label>
-
-                    <input
-                      id={`unit-price-${index}`}
-                      name="unit_price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={
-                        item.unit_price
-                      }
-                      onChange={(event) =>
-                        handleItemChange(
-                          index,
-                          event
-                        )
-                      }
-                      placeholder="0.00"
-                      disabled={saving}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label
-                      htmlFor={`subtotal-${index}`}
-                    >
-                      Subtotal
-                    </label>
-
-                    <input
-                      id={`subtotal-${index}`}
-                      type="text"
-                      value={`₹${calculateItemSubtotal(
-                        item
-                      ).toFixed(2)}`}
-                      readOnly
-                    />
-                  </div>
-
-                  <div className="form-actions">
-                    {itemForms.length >
-                      1 && (
-                      <button
-                        type="button"
-                        className="delete-button"
-                        onClick={() =>
-                          removeItemRow(
-                            index
+                        ) =>
+                          handleItemChange(
+                            index,
+                            event
                           )
                         }
                         disabled={saving}
                       >
-                        Remove Item
-                      </button>
-                    )}
+                        <option value="">
+                          Select product
+                        </option>
+
+                        {products.map(
+                          (product) => (
+                            <option
+                              key={
+                                product.product_id
+                              }
+                              value={
+                                product.product_id
+                              }
+                            >
+                              {
+                                product.product_name
+                              }{" "}
+                              —{" "}
+                              {
+                                product.sku
+                              }
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label
+                        htmlFor={`quantity-${index}`}
+                      >
+                        Quantity
+                      </label>
+
+                      <input
+                        id={`quantity-${index}`}
+                        name="quantity"
+                        type="number"
+                        min="1"
+                        value={
+                          item.quantity
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleItemChange(
+                            index,
+                            event
+                          )
+                        }
+                        placeholder="Quantity"
+                        disabled={saving}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label
+                        htmlFor={`unit-price-${index}`}
+                      >
+                        Unit Price
+                      </label>
+
+                      <input
+                        id={`unit-price-${index}`}
+                        name="unit_price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={
+                          item.unit_price
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleItemChange(
+                            index,
+                            event
+                          )
+                        }
+                        placeholder="0.00"
+                        disabled={saving}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label
+                        htmlFor={`subtotal-${index}`}
+                      >
+                        Subtotal
+                      </label>
+
+                      <input
+                        id={`subtotal-${index}`}
+                        type="text"
+                        value={`₹${calculateItemSubtotal(
+                          item
+                        ).toFixed(
+                          2
+                        )}`}
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="form-actions">
+
+                      {itemForms.length >
+                        1 && (
+                        <button
+                          type="button"
+                          className="delete-button"
+                          onClick={() =>
+                            removeItemRow(
+                              index
+                            )
+                          }
+                          disabled={
+                            saving
+                          }
+                        >
+                          Remove Item
+                        </button>
+                      )}
+
+                    </div>
+
                   </div>
-                </div>
-              )
-            )}
+                )
+              )}
 
-            <div className="form-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={addItemRow}
-                disabled={saving}
-              >
-                + Add Item
-              </button>
-            </div>
+              {/* Add Item */}
 
-            <div className="product-form-header">
-              <div>
-                <h2>
-                  Total: ₹
-                  {formTotal.toFixed(
-                    2
-                  )}
-                </h2>
+              <div className="form-actions">
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={
+                    addItemRow
+                  }
+                  disabled={saving}
+                >
+                  + Add Item
+                </button>
+
               </div>
-            </div>
 
-            <div className="form-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={resetForm}
-                disabled={saving}
-              >
-                Cancel
-              </button>
+              {/* Total */}
 
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={saving}
-              >
-                {saving
-                  ? "Saving..."
-                  : editingOrderId !==
-                      null
-                    ? "Update Purchase"
-                    : "Create Purchase"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              <div className="product-form-header">
+
+                <div>
+                  <h2>
+                    Total: ₹
+                    {formTotal.toFixed(
+                      2
+                    )}
+                  </h2>
+                </div>
+
+              </div>
+
+              {/* Form Actions */}
+
+              <div className="form-actions">
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={
+                    resetForm
+                  }
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving..."
+                    : editingOrderId !==
+                        null
+                      ? "Update Purchase"
+                      : "Create Purchase"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+        )}
+
+      {/* --------------------------------------------------
+          SEARCH
+      -------------------------------------------------- */}
 
       <div className="products-toolbar">
+
         <div className="search-box">
+
           <input
             type="text"
             value={search}
@@ -1188,10 +1675,17 @@ function Purchases() {
             }
             placeholder="Search purchase orders..."
           />
+
         </div>
+
       </div>
 
+      {/* --------------------------------------------------
+          PURCHASE TABLE
+      -------------------------------------------------- */}
+
       <div className="products-table-container">
+
         {loading ? (
           <div className="table-empty">
             Loading purchases...
@@ -1199,12 +1693,13 @@ function Purchases() {
         ) : filteredOrders.length ===
           0 ? (
           <div className="table-empty">
-            {search
+            {searchValue
               ? "No purchase orders match your search."
               : "No purchase orders found."}
           </div>
         ) : (
           <table className="products-table">
+
             <thead>
               <tr>
                 <th>ID</th>
@@ -1214,11 +1709,15 @@ function Purchases() {
                 <th>Total</th>
                 <th>Status</th>
                 <th>Items</th>
-                <th>Actions</th>
+
+                {canManagePurchases && (
+                  <th>Actions</th>
+                )}
               </tr>
             </thead>
 
             <tbody>
+
               {filteredOrders.map(
                 (order) => {
                   const orderItems =
@@ -1226,12 +1725,17 @@ function Purchases() {
                       order.purchase_order_id
                     );
 
+                  const isDeleting =
+                    deletingOrderId ===
+                    order.purchase_order_id;
+
                   return (
                     <tr
                       key={
                         order.purchase_order_id
                       }
                     >
+
                       <td>
                         #
                         {
@@ -1263,7 +1767,9 @@ function Purchases() {
                         ₹
                         {Number(
                           order.total_amount
-                        ).toFixed(2)}
+                        ).toFixed(
+                          2
+                        )}
                       </td>
 
                       <td>
@@ -1278,41 +1784,62 @@ function Purchases() {
                         }
                       </td>
 
-                      <td>
-                        <div className="table-actions">
-                          <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={() =>
-                              handleEditPurchase(
-                                order
-                              )
-                            }
-                          >
-                            Edit
-                          </button>
+                      {canManagePurchases && (
+                        <td>
 
-                          <button
-                            type="button"
-                            className="delete-button"
-                            onClick={() =>
-                              void handleDeletePurchase(
-                                order.purchase_order_id
-                              )
-                            }
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                          <div className="table-actions">
+
+                            <button
+                              type="button"
+                              className="secondary-button"
+                              onClick={() =>
+                                handleEditPurchase(
+                                  order
+                                )
+                              }
+                              disabled={
+                                saving ||
+                                deletingOrderId !==
+                                  null
+                              }
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              className="delete-button"
+                              onClick={() =>
+                                void handleDeletePurchase(
+                                  order.purchase_order_id
+                                )
+                              }
+                              disabled={
+                                isDeleting
+                              }
+                            >
+                              {isDeleting
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+
+                          </div>
+
+                        </td>
+                      )}
+
                     </tr>
                   );
                 }
               )}
+
             </tbody>
+
           </table>
         )}
+
       </div>
+
     </div>
   );
 }

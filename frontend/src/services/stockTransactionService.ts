@@ -3,7 +3,7 @@ import api from "./api";
 export interface StockTransaction {
   transaction_id: number;
   product_id: number;
-  transaction_type: string;
+  transaction_type: "IN" | "OUT";
   quantity: number;
   transaction_date: string;
   reason: string;
@@ -11,17 +11,27 @@ export interface StockTransaction {
 
 export interface StockTransactionCreate {
   product_id: number;
-  transaction_type: string;
+  transaction_type: "IN" | "OUT";
   quantity: number;
   transaction_date: string;
   reason: string;
 }
 
-export const getStockTransactions = async (): Promise<
-  StockTransaction[]
-> => {
+export interface StockTransactionFilters {
+  product_id?: number;
+  transaction_type?: "IN" | "OUT";
+  start_date?: string;
+  end_date?: string;
+}
+
+export const getStockTransactions = async (
+  filters?: StockTransactionFilters
+): Promise<StockTransaction[]> => {
   const response = await api.get<StockTransaction[]>(
-    "/stock-transactions/"
+    "/stock-transactions/",
+    {
+      params: filters,
+    }
   );
 
   return response.data;

@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
 
+import { useAuth } from "../../hooks/useAuth";
+
 interface NavigationItem {
   label: string;
   path: string;
@@ -21,6 +23,11 @@ const mainNavigation: NavigationItem[] = [
     label: "Inventory",
     path: "/inventory",
     icon: "▤",
+  },
+  {
+    label: "Stock History",
+    path: "/stock-history",
+    icon: "↕",
   },
 ];
 
@@ -53,6 +60,12 @@ const managementNavigation: NavigationItem[] = [
 ];
 
 function Sidebar() {
+  const {
+    isAdmin,
+    isManager,
+    isStaff,
+  } = useAuth();
+
   const renderNavigation = (
     items: NavigationItem[]
   ) => {
@@ -75,6 +88,35 @@ function Sidebar() {
     ));
   };
 
+  /*
+   * Staff:
+   * - Dashboard
+   * - Products
+   * - Inventory
+   * - Stock History
+   *
+   * Admin / Manager:
+   * - All navigation items
+   */
+  const visibleMainNavigation =
+    mainNavigation;
+
+  const visibleManagementNavigation =
+    isAdmin || isManager
+      ? managementNavigation
+      : managementNavigation.filter(
+          (item) =>
+            item.label === "Customers" ||
+            item.label === "Sales"
+        );
+
+  /*
+   * Keep the role variables intentionally
+   * available for future role-specific
+   * navigation rules.
+   */
+  void isStaff;
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -83,16 +125,20 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <p className="nav-section">MAIN</p>
+        <p className="nav-section">
+          MAIN
+        </p>
 
-        {renderNavigation(mainNavigation)}
+        {renderNavigation(
+          visibleMainNavigation
+        )}
 
         <p className="nav-section">
           MANAGEMENT
         </p>
 
         {renderNavigation(
-          managementNavigation
+          visibleManagementNavigation
         )}
       </nav>
     </aside>

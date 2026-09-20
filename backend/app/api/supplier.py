@@ -1,8 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.core.auth import get_current_user
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
 from app.models.user import User
 
 from app.schemas.supplier_schema import (
@@ -18,17 +29,28 @@ from app.services.supplier_service import (
     delete_supplier,
 )
 
+
 router = APIRouter()
 
+
+# ==========================================================
+# CREATE SUPPLIER
+# Admin + Manager only
+# ==========================================================
 
 @router.post("/")
 def create_new_supplier(
     supplier: SupplierCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
-        return create_supplier(db, supplier)
+        return create_supplier(
+            db,
+            supplier,
+        )
 
     except ValueError as e:
         message = str(e)
@@ -45,19 +67,33 @@ def create_new_supplier(
         )
 
 
+# ==========================================================
+# GET ALL SUPPLIERS
+# All authenticated users
+# ==========================================================
+
 @router.get("/")
 def get_suppliers(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     return get_all_suppliers(db)
 
+
+# ==========================================================
+# GET SUPPLIER BY ID
+# All authenticated users
+# ==========================================================
 
 @router.get("/{supplier_id}")
 def get_supplier(
     supplier_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     supplier = get_supplier_by_id(
         db,
@@ -73,12 +109,19 @@ def get_supplier(
     return supplier
 
 
+# ==========================================================
+# UPDATE SUPPLIER
+# Admin + Manager only
+# ==========================================================
+
 @router.put("/{supplier_id}")
 def update_supplier_record(
     supplier_id: int,
     supplier: SupplierUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return update_supplier(
@@ -108,11 +151,18 @@ def update_supplier_record(
         )
 
 
+# ==========================================================
+# DELETE SUPPLIER
+# Admin + Manager only
+# ==========================================================
+
 @router.delete("/{supplier_id}")
 def delete_supplier_record(
     supplier_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return delete_supplier(

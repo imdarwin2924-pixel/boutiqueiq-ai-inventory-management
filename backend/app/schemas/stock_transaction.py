@@ -15,6 +15,22 @@ class StockTransactionCreate(StockTransactionBase):
     pass
 
 
+# ==========================================================
+# STOCK OPERATION SCHEMAS
+# ==========================================================
+
+class StockInCreate(BaseModel):
+    product_id: int
+    quantity: int
+    reason: str
+
+
+class StockOutCreate(BaseModel):
+    product_id: int
+    quantity: int
+    reason: str
+
+
 class StockTransactionResponse(StockTransactionBase):
     transaction_id: int
 

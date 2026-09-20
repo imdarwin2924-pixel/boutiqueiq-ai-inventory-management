@@ -11,18 +11,49 @@ import {
   type SupplierCreate,
 } from "../services/supplierService";
 
+import { useAuth } from "../hooks/useAuth";
+
 function Suppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  /*
+   * --------------------------------------------------
+   * AUTH / RBAC
+   * --------------------------------------------------
+   */
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { isAdmin, isManager } = useAuth();
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const canManageSuppliers =
+    isAdmin || isManager;
 
-  const [search, setSearch] = useState("");
+  /*
+   * --------------------------------------------------
+   * STATE
+   * --------------------------------------------------
+   */
 
-  const [showForm, setShowForm] = useState(false);
+  const [suppliers, setSuppliers] =
+    useState<Supplier[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [deletingSupplierId, setDeletingSupplierId] =
+    useState<number | null>(null);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
+
+  const [search, setSearch] =
+    useState("");
+
+  const [showForm, setShowForm] =
+    useState(false);
 
   const [editingSupplierId, setEditingSupplierId] =
     useState<number | null>(null);
@@ -38,6 +69,54 @@ function Suppliers() {
 
   /*
    * --------------------------------------------------
+   * ERROR HANDLER
+   * --------------------------------------------------
+   */
+
+  const getErrorMessage = (
+    error: unknown,
+    fallback: string
+  ): string => {
+    if (axios.isAxiosError(error)) {
+      const backendMessage =
+        error.response?.data?.detail;
+
+      if (
+        typeof backendMessage === "string"
+      ) {
+        return backendMessage;
+      }
+
+      if (
+        error.response?.status === 401
+      ) {
+        return "Your session has expired. Please log in again.";
+      }
+
+      if (
+        error.response?.status === 403
+      ) {
+        return "You do not have permission to perform this action.";
+      }
+
+      if (
+        error.response?.status === 404
+      ) {
+        return "Supplier was not found.";
+      }
+
+      if (
+        error.response?.status === 409
+      ) {
+        return "This supplier already exists or is being used by another record.";
+      }
+    }
+
+    return fallback;
+  };
+
+  /*
+   * --------------------------------------------------
    * LOAD SUPPLIERS
    * --------------------------------------------------
    */
@@ -47,7 +126,8 @@ function Suppliers() {
       setLoading(true);
       setError("");
 
-      const suppliersData = await getSuppliers();
+      const suppliersData =
+        await getSuppliers();
 
       setSuppliers(suppliersData);
     } catch (error) {
@@ -56,18 +136,12 @@ function Suppliers() {
         error
       );
 
-      if (axios.isAxiosError(error)) {
-        const backendMessage =
-          error.response?.data?.detail;
-
-        if (typeof backendMessage === "string") {
-          setError(backendMessage);
-        } else {
-          setError("Unable to load suppliers.");
-        }
-      } else {
-        setError("Unable to load suppliers.");
-      }
+      setError(
+        getErrorMessage(
+          error,
+          "Unable to load suppliers."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -80,46 +154,47 @@ function Suppliers() {
    */
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadInitialData = async () => {
       try {
+        setLoading(true);
         setError("");
 
         const suppliersData =
           await getSuppliers();
 
-        setSuppliers(suppliersData);
+        if (isMounted) {
+          setSuppliers(
+            suppliersData
+          );
+        }
       } catch (error) {
         console.error(
           "Failed to load suppliers:",
           error
         );
 
-        if (axios.isAxiosError(error)) {
-          const backendMessage =
-            error.response?.data?.detail;
-
-          if (
-            typeof backendMessage === "string"
-          ) {
-            setError(
-              backendMessage
-            );
-          } else {
-            setError(
-              "Unable to load suppliers."
-            );
-          }
-        } else {
+        if (isMounted) {
           setError(
-            "Unable to load suppliers."
+            getErrorMessage(
+              error,
+              "Unable to load suppliers."
+            )
           );
         }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     void loadInitialData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   /*
@@ -128,14 +203,14 @@ function Suppliers() {
    * --------------------------------------------------
    */
 
-  const filteredSuppliers =
-    suppliers.filter((supplier) => {
-      const searchValue =
-        search
-          .toLowerCase()
-          .trim();
+  const searchValue =
+    search
+      .toLowerCase()
+      .trim();
 
-      return (
+  const filteredSuppliers =
+    suppliers.filter(
+      (supplier) =>
         supplier.supplier_name
           .toLowerCase()
           .includes(searchValue) ||
@@ -151,8 +226,7 @@ function Suppliers() {
         supplier.address
           .toLowerCase()
           .includes(searchValue)
-      );
-    });
+    );
 
   /*
    * --------------------------------------------------
@@ -165,13 +239,21 @@ function Suppliers() {
       HTMLInputElement | HTMLTextAreaElement
     >
   ) => {
-    const { name, value } =
-      event.target;
+    const {
+      name,
+      value,
+    } = event.target;
 
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setFormData(
+      (current) => ({
+        ...current,
+        [name]: value,
+      })
+    );
+
+    if (error) {
+      setError("");
+    }
   };
 
   /*
@@ -189,7 +271,9 @@ function Suppliers() {
       address: "",
     });
 
-    setEditingSupplierId(null);
+    setEditingSupplierId(
+      null
+    );
   };
 
   /*
@@ -199,6 +283,13 @@ function Suppliers() {
    */
 
   const handleAddSupplier = () => {
+    if (!canManageSuppliers) {
+      setError(
+        "You do not have permission to add suppliers."
+      );
+      return;
+    }
+
     resetForm();
 
     setShowForm(true);
@@ -215,6 +306,13 @@ function Suppliers() {
   const handleEditSupplier = (
     supplier: Supplier
   ) => {
+    if (!canManageSuppliers) {
+      setError(
+        "You do not have permission to edit suppliers."
+      );
+      return;
+    }
+
     setEditingSupplierId(
       supplier.supplier_id
     );
@@ -250,6 +348,19 @@ function Suppliers() {
   const handleDeleteSupplier = async (
     supplier: Supplier
   ) => {
+    if (!canManageSuppliers) {
+      setError(
+        "You do not have permission to delete suppliers."
+      );
+      return;
+    }
+
+    if (
+      deletingSupplierId !== null
+    ) {
+      return;
+    }
+
     const confirmed =
       window.confirm(
         `Are you sure you want to delete "${supplier.supplier_name}"?`
@@ -260,6 +371,10 @@ function Suppliers() {
     }
 
     try {
+      setDeletingSupplierId(
+        supplier.supplier_id
+      );
+
       setError("");
       setSuccess("");
 
@@ -278,32 +393,16 @@ function Suppliers() {
         error
       );
 
-      if (axios.isAxiosError(error)) {
-        const backendMessage =
-          error.response?.data?.detail;
-
-        if (
-          typeof backendMessage === "string"
-        ) {
-          setError(
-            backendMessage
-          );
-        } else if (
-          error.response?.status === 409
-        ) {
-          setError(
-            "Supplier cannot be deleted because it is being used by existing products."
-          );
-        } else {
-          setError(
-            "Unable to delete supplier."
-          );
-        }
-      } else {
-        setError(
+      setError(
+        getErrorMessage(
+          error,
           "Unable to delete supplier."
-        );
-      }
+        )
+      );
+    } finally {
+      setDeletingSupplierId(
+        null
+      );
     }
   };
 
@@ -314,6 +413,10 @@ function Suppliers() {
    */
 
   const handleCloseForm = () => {
+    if (saving) {
+      return;
+    }
+
     setShowForm(false);
     resetForm();
     setError("");
@@ -330,16 +433,44 @@ function Suppliers() {
   ) => {
     event.preventDefault();
 
+    if (!canManageSuppliers) {
+      setError(
+        "You do not have permission to manage suppliers."
+      );
+      return;
+    }
+
+    if (saving) {
+      return;
+    }
+
     setError("");
     setSuccess("");
 
     /*
+     * --------------------------------------------------
      * VALIDATION
+     * --------------------------------------------------
      */
 
-    if (
-      !formData.supplier_name.trim()
-    ) {
+    const supplierName =
+      formData.supplier_name.trim();
+
+    const contactPerson =
+      formData.contact_person.trim();
+
+    const phone =
+      formData.phone.trim();
+
+    const email =
+      formData.email
+        .trim()
+        .toLowerCase();
+
+    const address =
+      formData.address.trim();
+
+    if (!supplierName) {
       setError(
         "Supplier name is required."
       );
@@ -347,8 +478,7 @@ function Suppliers() {
     }
 
     if (
-      formData.supplier_name.trim()
-        .length < 2
+      supplierName.length < 2
     ) {
       setError(
         "Supplier name must contain at least 2 characters."
@@ -356,16 +486,14 @@ function Suppliers() {
       return;
     }
 
-    if (
-      !formData.contact_person.trim()
-    ) {
+    if (!contactPerson) {
       setError(
         "Contact person is required."
       );
       return;
     }
 
-    if (!formData.phone.trim()) {
+    if (!phone) {
       setError(
         "Phone number is required."
       );
@@ -373,14 +501,12 @@ function Suppliers() {
     }
 
     /*
-     * Basic phone validation
+     * Phone validation
      */
-    const phoneValue =
-      formData.phone.trim();
 
     if (
       !/^[0-9+\-\s()]{7,20}$/.test(
-        phoneValue
+        phone
       )
     ) {
       setError(
@@ -389,7 +515,7 @@ function Suppliers() {
       return;
     }
 
-    if (!formData.email.trim()) {
+    if (!email) {
       setError(
         "Email is required."
       );
@@ -399,14 +525,10 @@ function Suppliers() {
     /*
      * Email validation
      */
-    const emailValue =
-      formData.email
-        .trim()
-        .toLowerCase();
 
     if (
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        emailValue
+        email
       )
     ) {
       setError(
@@ -415,7 +537,7 @@ function Suppliers() {
       return;
     }
 
-    if (!formData.address.trim()) {
+    if (!address) {
       setError(
         "Address is required."
       );
@@ -423,7 +545,9 @@ function Suppliers() {
     }
 
     /*
-     * Check duplicate email
+     * --------------------------------------------------
+     * DUPLICATE EMAIL CHECK
+     * --------------------------------------------------
      */
 
     const duplicateSupplier =
@@ -432,7 +556,7 @@ function Suppliers() {
           supplier.email
             .trim()
             .toLowerCase() ===
-            emailValue &&
+            email &&
           supplier.supplier_id !==
             editingSupplierId
       );
@@ -445,7 +569,9 @@ function Suppliers() {
     }
 
     /*
+     * --------------------------------------------------
      * SAVE
+     * --------------------------------------------------
      */
 
     try {
@@ -454,23 +580,21 @@ function Suppliers() {
       const supplierData: SupplierCreate =
         {
           supplier_name:
-            formData.supplier_name.trim(),
+            supplierName,
 
           contact_person:
-            formData.contact_person.trim(),
+            contactPerson,
 
-          phone:
-            formData.phone.trim(),
+          phone,
 
-          email:
-            emailValue,
+          email,
 
-          address:
-            formData.address.trim(),
+          address,
         };
 
       if (
-        editingSupplierId !== null
+        editingSupplierId !==
+        null
       ) {
         await updateSupplier(
           editingSupplierId,
@@ -500,26 +624,12 @@ function Suppliers() {
         error
       );
 
-      if (axios.isAxiosError(error)) {
-        const backendMessage =
-          error.response?.data?.detail;
-
-        if (
-          typeof backendMessage === "string"
-        ) {
-          setError(
-            backendMessage
-          );
-        } else {
-          setError(
-            "Unable to save supplier. Please check the entered data."
-          );
-        }
-      } else {
-        setError(
+      setError(
+        getErrorMessage(
+          error,
           "Unable to save supplier. Please check the entered data."
-        );
-      }
+        )
+      );
     } finally {
       setSaving(false);
     }
@@ -533,7 +643,11 @@ function Suppliers() {
 
   return (
     <div className="products-page">
-      {/* Page Header */}
+
+      {/* --------------------------------------------------
+          PAGE HEADER
+      -------------------------------------------------- */}
+
       <div className="page-header">
         <div>
           <h1>Suppliers</h1>
@@ -545,31 +659,42 @@ function Suppliers() {
           </p>
         </div>
 
-        <button
-          className="primary-button"
-          onClick={
-            handleAddSupplier
-          }
-        >
-          + Add Supplier
-        </button>
+        {canManageSuppliers && (
+          <button
+            className="primary-button"
+            onClick={
+              handleAddSupplier
+            }
+          >
+            + Add Supplier
+          </button>
+        )}
       </div>
 
-      {/* Error */}
+      {/* --------------------------------------------------
+          ERROR
+      -------------------------------------------------- */}
+
       {error && (
         <div className="dashboard-error">
           {error}
         </div>
       )}
 
-      {/* Success */}
+      {/* --------------------------------------------------
+          SUCCESS
+      -------------------------------------------------- */}
+
       {success && (
         <div className="success-message">
           {success}
         </div>
       )}
 
-      {/* Summary */}
+      {/* --------------------------------------------------
+          SUMMARY
+      -------------------------------------------------- */}
+
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <div className="dashboard-card-title">
@@ -582,173 +707,200 @@ function Suppliers() {
         </div>
       </div>
 
-      {/* Supplier Form */}
-      {showForm && (
-        <div className="product-form-container">
-          <div className="product-form-header">
-            <div>
-              <h2>
-                {editingSupplierId !==
-                null
-                  ? "Edit Supplier"
-                  : "Add Supplier"}
-              </h2>
+      {/* --------------------------------------------------
+          SUPPLIER FORM
+      -------------------------------------------------- */}
 
-              <p>
-                {editingSupplierId !==
-                null
-                  ? "Update supplier information."
-                  : "Add a new supplier to your boutique."}
-              </p>
-            </div>
+      {showForm &&
+        canManageSuppliers && (
+          <div className="product-form-container">
 
-            <button
-              type="button"
-              className="close-button"
-              onClick={
-                handleCloseForm
-              }
-            >
-              ×
-            </button>
-          </div>
+            <div className="product-form-header">
+              <div>
+                <h2>
+                  {editingSupplierId !==
+                  null
+                    ? "Edit Supplier"
+                    : "Add Supplier"}
+                </h2>
 
-          <form
-            className="product-form"
-            onSubmit={
-              handleSaveSupplier
-            }
-          >
-            <div className="form-grid">
-              {/* Supplier Name */}
-              <div className="form-group">
-                <label>
-                  Supplier Name
-                </label>
-
-                <input
-                  name="supplier_name"
-                  type="text"
-                  value={
-                    formData.supplier_name
-                  }
-                  onChange={
-                    handleInputChange
-                  }
-                  placeholder="Enter supplier name"
-                />
+                <p>
+                  {editingSupplierId !==
+                  null
+                    ? "Update supplier information."
+                    : "Add a new supplier to your boutique."}
+                </p>
               </div>
 
-              {/* Contact Person */}
-              <div className="form-group">
-                <label>
-                  Contact Person
-                </label>
-
-                <input
-                  name="contact_person"
-                  type="text"
-                  value={
-                    formData.contact_person
-                  }
-                  onChange={
-                    handleInputChange
-                  }
-                  placeholder="Enter contact person"
-                />
-              </div>
-
-              {/* Phone */}
-              <div className="form-group">
-                <label>
-                  Phone
-                </label>
-
-                <input
-                  name="phone"
-                  type="tel"
-                  value={
-                    formData.phone
-                  }
-                  onChange={
-                    handleInputChange
-                  }
-                  placeholder="e.g. +91 9876543210"
-                />
-              </div>
-
-              {/* Email */}
-              <div className="form-group">
-                <label>
-                  Email
-                </label>
-
-                <input
-                  name="email"
-                  type="email"
-                  value={
-                    formData.email
-                  }
-                  onChange={
-                    handleInputChange
-                  }
-                  placeholder="supplier@example.com"
-                />
-              </div>
-
-              {/* Address */}
-              <div className="form-group form-group-full">
-                <label>
-                  Address
-                </label>
-
-                <textarea
-                  name="address"
-                  value={
-                    formData.address
-                  }
-                  onChange={
-                    handleInputChange
-                  }
-                  placeholder="Enter supplier address"
-                  rows={4}
-                />
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="form-actions">
               <button
                 type="button"
-                className="secondary-button"
+                className="close-button"
                 onClick={
                   handleCloseForm
                 }
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="primary-button"
                 disabled={saving}
               >
-                {saving
-                  ? editingSupplierId !==
-                    null
-                    ? "Updating..."
-                    : "Creating..."
-                  : editingSupplierId !==
-                    null
-                    ? "Update Supplier"
-                    : "Create Supplier"}
+                ×
               </button>
             </div>
-          </form>
-        </div>
-      )}
 
-      {/* Search */}
+            <form
+              className="product-form"
+              onSubmit={
+                handleSaveSupplier
+              }
+            >
+
+              <div className="form-grid">
+
+                {/* Supplier Name */}
+
+                <div className="form-group">
+                  <label>
+                    Supplier Name
+                  </label>
+
+                  <input
+                    name="supplier_name"
+                    type="text"
+                    value={
+                      formData.supplier_name
+                    }
+                    onChange={
+                      handleInputChange
+                    }
+                    placeholder="Enter supplier name"
+                    disabled={saving}
+                  />
+                </div>
+
+                {/* Contact Person */}
+
+                <div className="form-group">
+                  <label>
+                    Contact Person
+                  </label>
+
+                  <input
+                    name="contact_person"
+                    type="text"
+                    value={
+                      formData.contact_person
+                    }
+                    onChange={
+                      handleInputChange
+                    }
+                    placeholder="Enter contact person"
+                    disabled={saving}
+                  />
+                </div>
+
+                {/* Phone */}
+
+                <div className="form-group">
+                  <label>
+                    Phone
+                  </label>
+
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={
+                      formData.phone
+                    }
+                    onChange={
+                      handleInputChange
+                    }
+                    placeholder="e.g. +91 9876543210"
+                    disabled={saving}
+                  />
+                </div>
+
+                {/* Email */}
+
+                <div className="form-group">
+                  <label>
+                    Email
+                  </label>
+
+                  <input
+                    name="email"
+                    type="email"
+                    value={
+                      formData.email
+                    }
+                    onChange={
+                      handleInputChange
+                    }
+                    placeholder="supplier@example.com"
+                    disabled={saving}
+                  />
+                </div>
+
+                {/* Address */}
+
+                <div className="form-group form-group-full">
+                  <label>
+                    Address
+                  </label>
+
+                  <textarea
+                    name="address"
+                    value={
+                      formData.address
+                    }
+                    onChange={
+                      handleInputChange
+                    }
+                    placeholder="Enter supplier address"
+                    rows={4}
+                    disabled={saving}
+                  />
+                </div>
+
+              </div>
+
+              {/* Form Actions */}
+
+              <div className="form-actions">
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={
+                    handleCloseForm
+                  }
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? editingSupplierId !==
+                      null
+                      ? "Updating..."
+                      : "Creating..."
+                    : editingSupplierId !==
+                      null
+                    ? "Update Supplier"
+                    : "Create Supplier"}
+                </button>
+
+              </div>
+
+            </form>
+          </div>
+        )}
+
+      {/* --------------------------------------------------
+          SEARCH
+      -------------------------------------------------- */}
+
       <div className="products-toolbar">
         <input
           type="text"
@@ -762,8 +914,12 @@ function Suppliers() {
         />
       </div>
 
-      {/* Suppliers Table */}
+      {/* --------------------------------------------------
+          SUPPLIERS TABLE
+      -------------------------------------------------- */}
+
       <div className="products-table-container">
+
         {loading ? (
           <div className="table-empty">
             Loading suppliers...
@@ -771,10 +927,13 @@ function Suppliers() {
         ) : filteredSuppliers.length ===
           0 ? (
           <div className="table-empty">
-            No suppliers found.
+            {searchValue
+              ? "No suppliers match your search."
+              : "No suppliers found."}
           </div>
         ) : (
           <table className="products-table">
+
             <thead>
               <tr>
                 <th>ID</th>
@@ -799,13 +958,16 @@ function Suppliers() {
                   Address
                 </th>
 
-                <th>
-                  Actions
-                </th>
+                {canManageSuppliers && (
+                  <th>
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
 
             <tbody>
+
               {filteredSuppliers.map(
                 (supplier) => (
                   <tr
@@ -813,6 +975,7 @@ function Suppliers() {
                       supplier.supplier_id
                     }
                   >
+
                     <td>
                       {
                         supplier.supplier_id
@@ -845,38 +1008,58 @@ function Suppliers() {
                       {supplier.address}
                     </td>
 
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleEditSupplier(
-                              supplier
-                            )
-                          }
-                        >
-                          Edit
-                        </button>
+                    {canManageSuppliers && (
+                      <td>
+                        <div className="table-actions">
 
-                        <button
-                          type="button"
-                          className="delete-button"
-                          onClick={() =>
-                            handleDeleteSupplier(
-                              supplier
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleEditSupplier(
+                                supplier
+                              )
+                            }
+                            disabled={
+                              saving ||
+                              deletingSupplierId !==
+                                null
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() =>
+                              handleDeleteSupplier(
+                                supplier
+                              )
+                            }
+                            disabled={
+                              deletingSupplierId ===
+                              supplier.supplier_id
+                            }
+                          >
+                            {deletingSupplierId ===
+                            supplier.supplier_id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+
+                        </div>
+                      </td>
+                    )}
+
                   </tr>
                 )
               )}
+
             </tbody>
+
           </table>
         )}
+
       </div>
     </div>
   );

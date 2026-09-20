@@ -1,8 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.core.auth import get_current_user
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
 from app.models.user import User
 
 from app.schemas.purchase_order import (
@@ -25,6 +36,11 @@ router = APIRouter(
 )
 
 
+# ==========================================================
+# CREATE PURCHASE ORDER
+# Admin + Manager only
+# ==========================================================
+
 @router.post(
     "/",
     response_model=PurchaseOrderResponse,
@@ -33,7 +49,9 @@ router = APIRouter(
 def create_new_purchase_order(
     purchase_order: PurchaseOrderCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return create_purchase_order(
@@ -63,16 +81,28 @@ def create_new_purchase_order(
         )
 
 
+# ==========================================================
+# GET ALL PURCHASE ORDERS
+# All authenticated users
+# ==========================================================
+
 @router.get(
     "/",
     response_model=list[PurchaseOrderResponse],
 )
 def get_purchase_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     return get_all_purchase_orders(db)
 
+
+# ==========================================================
+# GET PURCHASE ORDER BY ID
+# All authenticated users
+# ==========================================================
 
 @router.get(
     "/{purchase_order_id}",
@@ -81,7 +111,9 @@ def get_purchase_orders(
 def get_purchase_order(
     purchase_order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     purchase_order = get_purchase_order_by_id(
         db,
@@ -97,6 +129,11 @@ def get_purchase_order(
     return purchase_order
 
 
+# ==========================================================
+# UPDATE PURCHASE ORDER
+# Admin + Manager only
+# ==========================================================
+
 @router.put(
     "/{purchase_order_id}",
     response_model=PurchaseOrderResponse,
@@ -105,7 +142,9 @@ def update_existing_purchase_order(
     purchase_order_id: int,
     purchase_order: PurchaseOrderCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         updated_order = update_purchase_order(
@@ -143,13 +182,20 @@ def update_existing_purchase_order(
         )
 
 
+# ==========================================================
+# DELETE PURCHASE ORDER
+# Admin + Manager only
+# ==========================================================
+
 @router.delete(
     "/{purchase_order_id}",
 )
 def delete_existing_purchase_order(
     purchase_order_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         deleted_order = delete_purchase_order(

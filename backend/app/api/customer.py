@@ -8,7 +8,12 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.core.auth import get_current_user
+
+from app.core.auth import (
+    get_current_user,
+    require_roles,
+)
+
 from app.models.user import User
 
 from app.schemas.customer_schema import (
@@ -28,11 +33,18 @@ from app.services.customer_service import (
 router = APIRouter()
 
 
+# ==========================================================
+# CREATE CUSTOMER
+# Admin + Manager only
+# ==========================================================
+
 @router.post("/")
 def create_new_customer(
     customer: CustomerCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return create_customer(
@@ -55,19 +67,33 @@ def create_new_customer(
         )
 
 
+# ==========================================================
+# GET ALL CUSTOMERS
+# All authenticated users
+# ==========================================================
+
 @router.get("/")
 def get_customers(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     return get_all_customers(db)
 
+
+# ==========================================================
+# GET CUSTOMER BY ID
+# All authenticated users
+# ==========================================================
 
 @router.get("/{customer_id}")
 def get_customer(
     customer_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
     customer = get_customer_by_id(
         db,
@@ -83,12 +109,19 @@ def get_customer(
     return customer
 
 
+# ==========================================================
+# UPDATE CUSTOMER
+# Admin + Manager only
+# ==========================================================
+
 @router.put("/{customer_id}")
 def update_customer_record(
     customer_id: int,
     customer: CustomerUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return update_customer(
@@ -118,11 +151,18 @@ def update_customer_record(
         )
 
 
+# ==========================================================
+# DELETE CUSTOMER
+# Admin + Manager only
+# ==========================================================
+
 @router.delete("/{customer_id}")
 def delete_customer_record(
     customer_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
 ):
     try:
         return delete_customer(

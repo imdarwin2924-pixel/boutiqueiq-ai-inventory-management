@@ -11,20 +11,38 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface CurrentUser {
+  user_id: number;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  status: string;
+  role_id: number;
+  role_name: string;
+}
+
 export const login = async (
   credentials: LoginRequest
 ): Promise<LoginResponse> => {
   const formData = new URLSearchParams();
 
-  formData.append("username", credentials.username);
-  formData.append("password", credentials.password);
+  formData.append(
+    "username",
+    credentials.username
+  );
+
+  formData.append(
+    "password",
+    credentials.password
+  );
 
   const response = await api.post<LoginResponse>(
     "/auth/login",
     formData,
     {
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type":
+          "application/x-www-form-urlencoded",
       },
     }
   );
@@ -33,3 +51,11 @@ export const login = async (
 
   return response.data;
 };
+
+export const getCurrentUser =
+  async (): Promise<CurrentUser> => {
+    const response =
+      await api.get<CurrentUser>("/auth/me");
+
+    return response.data;
+  };

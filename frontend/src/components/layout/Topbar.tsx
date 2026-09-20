@@ -1,5 +1,5 @@
 import { getCurrentUserEmail } from "../../utils/auth";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 function Topbar() {
   const { logout } = useAuth();

@@ -1,5 +1,11 @@
 import api from "./api";
 
+/**
+ * --------------------------------------------------
+ * Supplier Types
+ * --------------------------------------------------
+ */
+
 export interface Supplier {
   supplier_id: number;
   supplier_name: string;
@@ -25,16 +31,23 @@ export interface SupplierUpdate {
   address: string;
 }
 
-/*
- * Get all suppliers
+
+/**
+ * --------------------------------------------------
+ * Get All Suppliers
+ * --------------------------------------------------
  */
 export const getSuppliers = async (): Promise<Supplier[]> => {
   const response = await api.get<Supplier[]>("/suppliers/");
+
   return response.data;
 };
 
-/*
- * Get supplier by ID
+
+/**
+ * --------------------------------------------------
+ * Get Supplier By ID
+ * --------------------------------------------------
  */
 export const getSupplierById = async (
   supplierId: number
@@ -46,8 +59,13 @@ export const getSupplierById = async (
   return response.data;
 };
 
-/*
- * Create supplier
+
+/**
+ * --------------------------------------------------
+ * Create Supplier
+ * --------------------------------------------------
+ *
+ * Admin and Manager only.
  */
 export const createSupplier = async (
   supplier: SupplierCreate
@@ -60,8 +78,13 @@ export const createSupplier = async (
   return response.data;
 };
 
-/*
- * Update supplier
+
+/**
+ * --------------------------------------------------
+ * Update Supplier
+ * --------------------------------------------------
+ *
+ * Admin and Manager only.
  */
 export const updateSupplier = async (
   supplierId: number,
@@ -75,8 +98,13 @@ export const updateSupplier = async (
   return response.data;
 };
 
-/*
- * Delete supplier
+
+/**
+ * --------------------------------------------------
+ * Delete Supplier
+ * --------------------------------------------------
+ *
+ * Admin and Manager only.
  */
 export const deleteSupplier = async (
   supplierId: number

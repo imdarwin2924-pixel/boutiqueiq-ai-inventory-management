@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 function Login() {
   const { login } = useAuth();
@@ -9,16 +9,41 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
 
   const handleLogin = async () => {
     setError("");
 
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
+      setError(
+        "Please enter your email and password."
+      );
+      return;
+    }
+
     try {
-      await login(email, password);
+      setIsSubmitting(true);
+
+      await login(
+        trimmedEmail,
+        password
+      );
+
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login failed:", error);
-      setError("Invalid email or password.");
+      console.error(
+        "Login failed:",
+        error
+      );
+
+      setError(
+        "Invalid email or password."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -32,7 +57,10 @@ function Login() {
         type="email"
         placeholder="Email"
         value={email}
-        onChange={(event) => setEmail(event.target.value)}
+        onChange={(event) =>
+          setEmail(event.target.value)
+        }
+        disabled={isSubmitting}
       />
 
       <br />
@@ -42,17 +70,34 @@ function Login() {
         type="password"
         placeholder="Password"
         value={password}
-        onChange={(event) => setPassword(event.target.value)}
+        onChange={(event) =>
+          setPassword(event.target.value)
+        }
+        disabled={isSubmitting}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            void handleLogin();
+          }
+        }}
       />
 
       <br />
       <br />
 
-      <button onClick={handleLogin}>
-        Login
+      <button
+        onClick={() => void handleLogin()}
+        disabled={isSubmitting}
+      >
+        {isSubmitting
+          ? "Logging in..."
+          : "Login"}
       </button>
 
-      {error && <p>{error}</p>}
+      {error && (
+        <p>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -26,3 +26,13 @@ class InventoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class InventoryStatusResponse(BaseModel):
+    inventory_id: int
+    product_id: int
+    quantity: int
+    minimum_stock: int
+    location: str
+    last_updated: datetime
+    status: str
