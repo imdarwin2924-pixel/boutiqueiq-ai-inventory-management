@@ -19,10 +19,12 @@ from app.models.user import User
 from app.schemas.purchase_order import (
     PurchaseOrderCreate,
     PurchaseOrderResponse,
+    PurchaseWithItemsCreate,
 )
 
 from app.services.purchase_order_service import (
     create_purchase_order,
+    create_purchase_with_items,
     get_all_purchase_orders,
     get_purchase_order_by_id,
     update_purchase_order,
@@ -72,6 +74,76 @@ def create_new_purchase_order(
         if "Supplier not found" in message:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
+
+
+# ==========================================================
+# CREATE PURCHASE WITH ITEMS
+# Admin + Manager only
+#
+# Atomic operation:
+# Purchase Order
+#      +
+# Purchase Items
+#      +
+# Inventory IN
+#      +
+# Stock IN Transactions
+# ==========================================================
+
+@router.post(
+    "/with-items",
+    response_model=PurchaseOrderResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_purchase_with_items_endpoint(
+    purchase_data: PurchaseWithItemsCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("Admin", "Manager")
+    ),
+):
+    try:
+        return create_purchase_with_items(
+            db,
+            purchase_data,
+            current_user.user_id,
+        )
+
+    except ValueError as e:
+        message = str(e)
+
+        # Supplier doesn't exist
+        if "Supplier not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        # Product doesn't exist
+        if "Product" in message and "not found" in message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            )
+
+        # Duplicate order number
+        if "Order number already exists" in message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=message,
+            )
+
+        # Total mismatch / validation failure
+        if "Purchase total does not match" in message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=message,
             )
 
